@@ -177,6 +177,121 @@ const run = async () => {
       rating: 4.8,
       totalReviews: 2410,
     },
+    {
+      chef: chef._id,
+      category: categories[1]._id, // Diabetic Friendly
+      name: 'Ragi Idli with Sambar',
+      description:
+        'Steamed finger millet (ragi) idlis served on a banana leaf with piping hot drumstick vegetable sambar, coconut chutney, and roasted tomato chutney. Rich in calcium and low glycemic index.',
+      images: [
+        '/food-images/ragi-idli-sambar-1.jpg',
+        '/food-images/ragi-idli-sambar-2.jpg',
+        '/food-images/ragi-idli-sambar-3.jpg',
+        '/food-images/ragi-idli-sambar-4.jpg',
+      ],
+      price: 129,
+      discountPrice: 129,
+      isVeg: true,
+      nutrition: { calories: 230, protein: 9, carbs: 42, fat: 3, fiber: 8, sugar: 3 },
+      suitableFor: ['diabetic_friendly', 'weight_loss'],
+      tags: ['Diabetic Friendly', 'Pure Veg', 'Breakfast', 'Low GI', 'High Fiber', '9g Protein'],
+      portionSize: '3 idlis + sambar (320g)',
+      preparationTimeMinutes: 15,
+      rating: 4.8,
+      totalReviews: 2150,
+    },
+    {
+      chef: chef._id,
+      category: categories[1]._id, // Diabetic Friendly
+      name: 'Vegetable Oats Upma',
+      description:
+        'Hearty rolled oats tempered with mustard seeds, curry leaves, ginger, golden roasted cashews, crunchy green peas, and diced carrots. Served with coconut chutney and tangy vegetable sambar.',
+      images: [
+        '/food-images/vegetable-oats-upma-1.jpg',
+        '/food-images/vegetable-oats-upma-2.jpg',
+        '/food-images/vegetable-oats-upma-3.jpg',
+        '/food-images/vegetable-oats-upma-4.jpg',
+      ],
+      price: 139,
+      discountPrice: 139,
+      isVeg: true,
+      nutrition: { calories: 260, protein: 11, carbs: 38, fat: 7, fiber: 7, sugar: 4 },
+      suitableFor: ['diabetic_friendly', 'weight_loss'],
+      tags: ['Diabetic Friendly', 'Pure Veg', 'Breakfast', 'High Fiber', 'Weight Loss', '11g Protein'],
+      portionSize: '1 bowl (300g)',
+      preparationTimeMinutes: 15,
+      rating: 4.7,
+      totalReviews: 1840,
+    },
+    {
+      chef: chef._id,
+      category: categories[1]._id, // Diabetic Friendly
+      name: 'Multigrain Chapati with Vegetable Curry',
+      description:
+        'Tawa-toasted multigrain flatbreads packed with whole wheat, oats, and ragi flour, accompanied by rich mixed cauliflower, carrot, and green pea curry, homemade curd, and sliced salad.',
+      images: [
+        '/food-images/multigrain-chapati-vegetable-curry-1.jpg',
+        '/food-images/multigrain-chapati-vegetable-curry-2.jpg',
+        '/food-images/multigrain-chapati-vegetable-curry-3.jpg',
+        '/food-images/multigrain-chapati-vegetable-curry-4.jpg',
+      ],
+      price: 179,
+      discountPrice: 179,
+      isVeg: true,
+      nutrition: { calories: 340, protein: 14, carbs: 52, fat: 8, fiber: 10, sugar: 5 },
+      suitableFor: ['diabetic_friendly', 'weight_loss', 'fitness'],
+      tags: ['Diabetic Friendly', 'Pure Veg', 'Low GI', 'High Fiber', '14g Protein'],
+      portionSize: '3 chapatis + curry (350g)',
+      preparationTimeMinutes: 20,
+      rating: 4.8,
+      totalReviews: 2650,
+    },
+    {
+      chef: chef._id,
+      category: categories[2]._id, // High Protein
+      name: 'Grilled Fish with Vegetables',
+      description:
+        'Fresh sea bass fillet herb-crusted and pan-seared to flaky perfection, served with charred bell peppers, zucchini, cherry tomatoes, broccoli, lemon wedge, and chimichurri herb relish.',
+      images: [
+        '/food-images/grilled-fish-vegetables-1.jpg',
+        '/food-images/grilled-fish-vegetables-2.jpg',
+        '/food-images/grilled-fish-vegetables-3.jpg',
+        '/food-images/grilled-fish-vegetables-4.jpg',
+      ],
+      price: 299,
+      discountPrice: 299,
+      isVeg: false,
+      nutrition: { calories: 360, protein: 38, carbs: 10, fat: 9, fiber: 4, sugar: 3 },
+      suitableFor: ['fitness', 'weight_loss'],
+      tags: ['38g Protein', '360 kcal', 'Non-Veg', 'High Protein', 'Keto', 'Grills'],
+      portionSize: '1 fillet + veggies (350g)',
+      preparationTimeMinutes: 25,
+      rating: 4.9,
+      totalReviews: 3420,
+    },
+    {
+      chef: chef._id,
+      category: categories[3]._id, // Salad / Bowls
+      name: 'Grilled Chicken Salad',
+      description:
+        'Tender grilled spiced chicken breast strips layered over crisp romaine, butterhead lettuce, English cucumbers, cherry tomatoes, sweet bell peppers, and whole grain mustard vinaigrette.',
+      images: [
+        '/food-images/grilled-chicken-salad-1.jpg',
+        '/food-images/grilled-chicken-salad-2.jpg',
+        '/food-images/grilled-chicken-salad-3.jpg',
+        '/food-images/grilled-chicken-salad-4.jpg',
+      ],
+      price: 229,
+      discountPrice: 229,
+      isVeg: false,
+      nutrition: { calories: 310, protein: 36, carbs: 14, fat: 7, fiber: 6, sugar: 4 },
+      suitableFor: ['weight_loss', 'fitness'],
+      tags: ['36g Protein', '310 kcal', 'Non-Veg', 'High Protein', 'Weight Loss', 'Salad', 'Grills'],
+      portionSize: '1 bowl (350g)',
+      preparationTimeMinutes: 20,
+      rating: 4.9,
+      totalReviews: 2910,
+    },
   ]);
 
   console.log('Seed complete!');

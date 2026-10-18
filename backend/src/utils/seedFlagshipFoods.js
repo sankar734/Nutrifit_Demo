@@ -48,9 +48,20 @@ async function seedFlagshipFoods() {
       console.log('Created Salad category');
     }
 
+    let diabeticCat = await Category.findOne({ name: /diabetic/i });
+    if (!diabeticCat) {
+      diabeticCat = await Category.create({
+        name: 'Diabetic Friendly',
+        slug: 'diabetic-friendly',
+        description: 'Low glycemic index, fiber-rich blood sugar balancing meals',
+        icon: 'Droplet',
+        isActive: true,
+      });
+      console.log('Created Diabetic Friendly category');
+    }
+
     let chef = await Chef.findOne();
     if (!chef) {
-      console.log('No chef found, looking for user with role chef');
       const User = require('../models/User');
       let chefUser = await User.findOne({ role: 'chef' });
       if (chefUser) {
@@ -65,7 +76,7 @@ async function seedFlagshipFoods() {
     }
     const chefId = chef ? chef._id : null;
 
-    const flagshipDishes = [
+    const allDishes = [
       {
         name: 'Grilled Chicken Breast',
         category: highProteinCat._id,
@@ -85,7 +96,7 @@ async function seedFlagshipFoods() {
         totalReviews: 2840,
         nutrition: { calories: 380, protein: 42, carbs: 12, fat: 8, fiber: 5, sugar: 3 },
         suitableFor: ['fitness', 'weight_loss'],
-        tags: ['42g Protein', '380 kcal', 'Non-Veg', 'High Protein', 'Keto', 'Weight Loss'],
+        tags: ['42g Protein', '380 kcal', 'Non-Veg', 'High Protein', 'Keto', 'Weight Loss', 'Grills'],
       },
       {
         name: 'Paneer Tikka',
@@ -106,7 +117,7 @@ async function seedFlagshipFoods() {
         totalReviews: 3150,
         nutrition: { calories: 320, protein: 24, carbs: 14, fat: 18, fiber: 4, sugar: 4 },
         suitableFor: ['fitness', 'diabetic_friendly'],
-        tags: ['24g Protein', '320 kcal', 'Pure Veg', 'High Protein', 'Diabetic Friendly', 'Keto'],
+        tags: ['24g Protein', '320 kcal', 'Pure Veg', 'High Protein', 'Diabetic Friendly', 'Keto', 'Grills'],
       },
       {
         name: 'Egg White Omelette',
@@ -148,11 +159,116 @@ async function seedFlagshipFoods() {
         totalReviews: 2410,
         nutrition: { calories: 210, protein: 16, carbs: 32, fat: 3, fiber: 11, sugar: 5 },
         suitableFor: ['weight_loss', 'diabetic_friendly'],
-        tags: ['16g Protein', '210 kcal', 'Vegan', 'Pure Veg', 'High Protein', 'Weight Loss', 'Diabetic Friendly'],
+        tags: ['16g Protein', '210 kcal', 'Vegan', 'Pure Veg', 'High Protein', 'Weight Loss', 'Diabetic Friendly', 'Salad'],
+      },
+      {
+        name: 'Ragi Idli with Sambar',
+        category: diabeticCat._id,
+        chef: chefId,
+        description:
+          'Steamed finger millet (ragi) idlis served on a banana leaf with piping hot drumstick vegetable sambar, coconut chutney, and roasted tomato chutney. Rich in calcium and low glycemic index.',
+        images: [
+          '/food-images/ragi-idli-sambar-1.jpg',
+          '/food-images/ragi-idli-sambar-2.jpg',
+          '/food-images/ragi-idli-sambar-3.jpg',
+          '/food-images/ragi-idli-sambar-4.jpg',
+        ],
+        price: 129,
+        discountPrice: 129,
+        isVeg: true,
+        rating: 4.8,
+        totalReviews: 2150,
+        nutrition: { calories: 230, protein: 9, carbs: 42, fat: 3, fiber: 8, sugar: 3 },
+        suitableFor: ['diabetic_friendly', 'weight_loss'],
+        tags: ['Diabetic Friendly', 'Pure Veg', 'Breakfast', 'Low GI', 'High Fiber', '9g Protein'],
+      },
+      {
+        name: 'Vegetable Oats Upma',
+        category: diabeticCat._id,
+        chef: chefId,
+        description:
+          'Hearty rolled oats tempered with mustard seeds, curry leaves, ginger, golden roasted cashews, crunchy green peas, and diced carrots. Served with coconut chutney and tangy vegetable sambar.',
+        images: [
+          '/food-images/vegetable-oats-upma-1.jpg',
+          '/food-images/vegetable-oats-upma-2.jpg',
+          '/food-images/vegetable-oats-upma-3.jpg',
+          '/food-images/vegetable-oats-upma-4.jpg',
+        ],
+        price: 139,
+        discountPrice: 139,
+        isVeg: true,
+        rating: 4.7,
+        totalReviews: 1840,
+        nutrition: { calories: 260, protein: 11, carbs: 38, fat: 7, fiber: 7, sugar: 4 },
+        suitableFor: ['diabetic_friendly', 'weight_loss'],
+        tags: ['Diabetic Friendly', 'Pure Veg', 'Breakfast', 'High Fiber', 'Weight Loss', '11g Protein'],
+      },
+      {
+        name: 'Multigrain Chapati with Vegetable Curry',
+        category: diabeticCat._id,
+        chef: chefId,
+        description:
+          'Tawa-toasted multigrain flatbreads packed with whole wheat, oats, and ragi flour, accompanied by rich mixed cauliflower, carrot, and green pea curry, homemade curd, and sliced salad.',
+        images: [
+          '/food-images/multigrain-chapati-vegetable-curry-1.jpg',
+          '/food-images/multigrain-chapati-vegetable-curry-2.jpg',
+          '/food-images/multigrain-chapati-vegetable-curry-3.jpg',
+          '/food-images/multigrain-chapati-vegetable-curry-4.jpg',
+        ],
+        price: 179,
+        discountPrice: 179,
+        isVeg: true,
+        rating: 4.8,
+        totalReviews: 2650,
+        nutrition: { calories: 340, protein: 14, carbs: 52, fat: 8, fiber: 10, sugar: 5 },
+        suitableFor: ['diabetic_friendly', 'weight_loss', 'fitness'],
+        tags: ['Diabetic Friendly', 'Pure Veg', 'Low GI', 'High Fiber', '14g Protein'],
+      },
+      {
+        name: 'Grilled Fish with Vegetables',
+        category: highProteinCat._id,
+        chef: chefId,
+        description:
+          'Fresh sea bass fillet herb-crusted and pan-seared to flaky perfection, served with charred bell peppers, zucchini, cherry tomatoes, broccoli, lemon wedge, and chimichurri herb relish.',
+        images: [
+          '/food-images/grilled-fish-vegetables-1.jpg',
+          '/food-images/grilled-fish-vegetables-2.jpg',
+          '/food-images/grilled-fish-vegetables-3.jpg',
+          '/food-images/grilled-fish-vegetables-4.jpg',
+        ],
+        price: 299,
+        discountPrice: 299,
+        isVeg: false,
+        rating: 4.9,
+        totalReviews: 3420,
+        nutrition: { calories: 360, protein: 38, carbs: 10, fat: 9, fiber: 4, sugar: 3 },
+        suitableFor: ['fitness', 'weight_loss'],
+        tags: ['38g Protein', '360 kcal', 'Non-Veg', 'High Protein', 'Keto', 'Grills'],
+      },
+      {
+        name: 'Grilled Chicken Salad',
+        category: saladCat._id,
+        chef: chefId,
+        description:
+          'Tender grilled spiced chicken breast strips layered over crisp romaine, butterhead lettuce, English cucumbers, cherry tomatoes, sweet bell peppers, and whole grain mustard vinaigrette.',
+        images: [
+          '/food-images/grilled-chicken-salad-1.jpg',
+          '/food-images/grilled-chicken-salad-2.jpg',
+          '/food-images/grilled-chicken-salad-3.jpg',
+          '/food-images/grilled-chicken-salad-4.jpg',
+        ],
+        price: 229,
+        discountPrice: 229,
+        isVeg: false,
+        rating: 4.9,
+        totalReviews: 2910,
+        nutrition: { calories: 310, protein: 36, carbs: 14, fat: 7, fiber: 6, sugar: 4 },
+        suitableFor: ['weight_loss', 'fitness'],
+        tags: ['36g Protein', '310 kcal', 'Non-Veg', 'High Protein', 'Weight Loss', 'Salad', 'Grills'],
       },
     ];
 
-    for (const d of flagshipDishes) {
+    for (const d of allDishes) {
       let existing = await Food.findOne({ name: d.name });
       if (existing) {
         existing.images = d.images;
@@ -173,7 +289,7 @@ async function seedFlagshipFoods() {
       }
     }
 
-    console.log('Finished seeding 4 flagship dishes successfully!');
+    console.log('Finished seeding all 9 flagship multi-angle dishes successfully!');
     process.exit(0);
   } catch (err) {
     console.error('Error seeding dishes:', err);

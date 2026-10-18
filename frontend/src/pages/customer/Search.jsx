@@ -27,6 +27,7 @@ import sampleFoods from '../../data/sampleFoods';
 const desktopCategoryPills = [
   { id: 'all', label: 'All Dishes', icon: Sparkles },
   { id: 'high-protein', label: 'High Protein', icon: Flame },
+  { id: 'diabetic-friendly', label: 'Diabetic Friendly', icon: Droplet },
   { id: 'grill', label: 'Grills & Tandoor', icon: Flame },
   { id: 'breakfast', label: 'Healthy Breakfast', icon: Clock },
   { id: 'salads', label: 'Salads & Bowls', icon: Leaf },
@@ -39,6 +40,7 @@ const desktopCategoryPills = [
 const mobileChips = [
   { id: 'all', label: 'All Dishes' },
   { id: 'high-protein', label: 'High Protein' },
+  { id: 'diabetic-friendly', label: 'Diabetic Friendly' },
   { id: 'grill', label: 'Grills' },
   { id: 'breakfast', label: 'Breakfast' },
   { id: 'salads', label: 'Salads' },
@@ -157,6 +159,12 @@ const Search = () => {
         if (!hasProteinTag && !hasProteinMacro && !hasProteinCat) {
           return false;
         }
+      } else if (activeCategory === 'diabetic-friendly') {
+        const isDiabetic =
+          f.dietaryTags?.some((t) => t.toLowerCase().includes('diabetic')) ||
+          catName.toLowerCase().includes('diabetic') ||
+          f.suitableFor?.includes('diabetic_friendly');
+        if (!isDiabetic) return false;
       } else if (activeCategory === 'grill') {
         const isGrill =
           f.name?.toLowerCase().includes('grill') ||
