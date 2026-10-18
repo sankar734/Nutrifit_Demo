@@ -40,7 +40,14 @@ const getFoods = asyncHandler(async (req, res) => {
   } = req.query;
 
   const query = { isAvailable: true };
-  if (search) query.$text = { $search: search };
+  if (search && search.trim()) {
+    const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    query.$or = [
+      { name: { $regex: escaped, $options: 'i' } },
+      { description: { $regex: escaped, $options: 'i' } },
+      { tags: { $regex: escaped, $options: 'i' } },
+    ];
+  }
   if (category) query.category = category;
   if (isVeg !== undefined) query.isVeg = isVeg === 'true';
   if (suitableFor) query.suitableFor = suitableFor;

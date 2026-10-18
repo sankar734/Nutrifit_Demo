@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { 
   Search as SearchIcon, 
@@ -145,31 +145,40 @@ const Search = () => {
       }
 
       // 2. Top Category Pills
+      const catName =
+        typeof f.category === 'object' && f.category !== null
+          ? (f.category.name || '')
+          : (f.category || '');
+
       if (activeCategory === 'high-protein') {
-        if ((f.nutrition?.protein || 0) < 15 && !f.dietaryTags?.some((t) => t.toLowerCase().includes('protein'))) {
+        const hasProteinTag = f.dietaryTags?.some((t) => t.toLowerCase().includes('protein'));
+        const hasProteinMacro = (f.nutrition?.protein || 0) >= 15;
+        const hasProteinCat = catName.toLowerCase().includes('protein');
+        if (!hasProteinTag && !hasProteinMacro && !hasProteinCat) {
           return false;
         }
       } else if (activeCategory === 'grill') {
         const isGrill =
-          f.name.toLowerCase().includes('grill') ||
-          f.name.toLowerCase().includes('tikka') ||
-          f.category?.toLowerCase?.().includes('grill');
+          f.name?.toLowerCase().includes('grill') ||
+          f.name?.toLowerCase().includes('tikka') ||
+          catName.toLowerCase().includes('grill');
         if (!isGrill) return false;
       } else if (activeCategory === 'breakfast') {
         const isBreakfast =
-          f.category === 'Breakfast' ||
-          f.category?.name === 'Healthy Breakfast' ||
-          f.name.toLowerCase().includes('omelette') ||
+          catName.toLowerCase().includes('breakfast') ||
+          f.name?.toLowerCase().includes('omelette') ||
           f.dietaryTags?.some((t) => t.toLowerCase().includes('breakfast'));
         if (!isBreakfast) return false;
       } else if (activeCategory === 'salads') {
         const isSalad =
-          f.name.toLowerCase().includes('salad') ||
-          f.category === 'Salad & Bowls' ||
-          f.category?.name === 'Salad & Bowls';
+          f.name?.toLowerCase().includes('salad') ||
+          catName.toLowerCase().includes('salad');
         if (!isSalad) return false;
       } else if (activeCategory === 'weight-loss') {
-        if (!f.dietaryTags?.some((t) => t.toLowerCase().includes('weight')) && (f.nutrition?.calories || 0) > 350) {
+        const isWeightLoss =
+          f.dietaryTags?.some((t) => t.toLowerCase().includes('weight')) ||
+          catName.toLowerCase().includes('weight');
+        if (!isWeightLoss && (f.nutrition?.calories || 0) > 350) {
           return false;
         }
       } else if (activeCategory === 'pure-veg') {
@@ -196,14 +205,14 @@ const Search = () => {
 
       // 5. Cuisine Filter
       if (selectedCuisines.length > 0) {
-        if (!selectedCuisines.includes(f.cuisine) && !selectedCuisines.includes(f.category)) {
+        if (!selectedCuisines.includes(f.cuisine) && !selectedCuisines.includes(catName)) {
           return false;
         }
       }
 
       return true;
     });
-  }, [query, activeCategory, selectedDietTypes, maxPrice, selectedCuisines]);
+  }, [foods, query, activeCategory, selectedDietTypes, maxPrice, selectedCuisines]);
 
   return (
     <MobileLayout fullWidth={!isMobileView}>
