@@ -23,11 +23,20 @@ import { useCart } from '../../context/CartContext';
 import { useDeviceMode } from '../../context/DeviceModeContext';
 import sampleFoods from '../../data/sampleFoods';
 
-const addOnsList = [
-  { id: 'chicken', label: 'Extra Chicken', price: 50 },
-  { id: 'raita', label: 'Raita', price: 30, defaultChecked: true },
-  { id: 'salan', label: 'Salan', price: 20 },
-];
+const getFoodAddOns = (f) => {
+  if (f?.isVeg) {
+    return [
+      { id: 'extra_paneer', label: 'Extra Grilled Paneer (+50g)', price: 45 },
+      { id: 'mint_chutney', label: 'Fresh Mint Chutney Dip', price: 25 },
+      { id: 'roasted_seeds', label: 'Crunchy Roasted Seed Mix', price: 20 },
+    ];
+  }
+  return [
+    { id: 'extra_chicken', label: 'Extra Flame-Grilled Chicken (+60g)', price: 60 },
+    { id: 'greek_dip', label: 'Low-Fat Garlic Herb Yogurt Dip', price: 30 },
+    { id: 'boiled_egg', label: '2x Boiled Egg Whites', price: 25 },
+  ];
+};
 
 const FoodDetails = () => {
   const { id } = useParams();
@@ -40,15 +49,15 @@ const FoodDetails = () => {
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [selectedTab, setSelectedTab] = useState('Details');
   const [spiceLevel, setSpiceLevel] = useState('Medium');
-  const [selectedAddOns, setSelectedAddOns] = useState(['raita']);
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [addedToast, setAddedToast] = useState(false);
 
   useEffect(() => {
-    // Check if id matches sample data or biryani
+    // Check if id matches sample data or slug
     const matched = sampleFoods.find(
-      (f) => f._id === id || (id === 'chicken-biryani' && f.name.toLowerCase().includes('biryani'))
+      (f) => f._id === id || f.slug === id || (id && f.name.toLowerCase().includes(id.toLowerCase()))
     );
     if (matched) {
       setFood(matched);
@@ -56,8 +65,8 @@ const FoodDetails = () => {
     }
     foodApi
       .details(id)
-      .then(({ data }) => setFood(data.data.food || sampleFoods[4]))
-      .catch(() => setFood(sampleFoods[4] || sampleFoods[0]));
+      .then(({ data }) => setFood(data.data.food || sampleFoods[0]))
+      .catch(() => setFood(sampleFoods[0]));
   }, [id]);
 
   if (!food) {
@@ -71,6 +80,7 @@ const FoodDetails = () => {
     );
   }
 
+  const addOnsList = getFoodAddOns(food);
   const basePrice = food.discountPrice || food.price;
   const addOnsTotal = selectedAddOns.reduce((sum, addOnId) => {
     const item = addOnsList.find((a) => a.id === addOnId);
@@ -79,14 +89,21 @@ const FoodDetails = () => {
   const unitPrice = basePrice + addOnsTotal;
   const totalPrice = unitPrice * qty;
 
-  const restaurantName = food.chef?.kitchenName || 'Paradise Biryani';
+  const restaurantName = food.chef?.kitchenName || "Sankar's Healthy Kitchen";
+  const categoryLabel =
+    typeof food.category === 'object' && food.category !== null
+      ? food.category.name
+      : food.category || 'High Protein';
 
-  const galleryImages = [
-    food.images?.[0] || '/food-images/chicken-biryani.jpg',
-    food.images?.[1] || '/food-images/hero-bowl.jpg',
-    food.images?.[2] || '/food-images/paneer-salad.jpg',
-    food.images?.[3] || '/food-images/buddha-bowl.jpg',
-  ];
+  const galleryImages =
+    food.images && food.images.length > 0
+      ? food.images
+      : [
+          food.image || '/food-images/grilled-chicken-breast-1.jpg',
+          '/food-images/grilled-chicken-breast-2.jpg',
+          '/food-images/grilled-chicken-breast-3.jpg',
+          '/food-images/grilled-chicken-breast-4.jpg',
+        ];
 
   const toggleAddOn = (addOnId) => {
     if (selectedAddOns.includes(addOnId)) {
@@ -135,7 +152,7 @@ const FoodDetails = () => {
               <nav className="flex items-center gap-2 text-xs font-semibold text-slate-500">
                 <Link to="/search" className="hover:text-purple-700 transition">Explore</Link>
                 <ChevronRight size={13} className="text-slate-400" />
-                <span className="text-slate-600">Biryani</span>
+                <span className="text-slate-600">{categoryLabel}</span>
                 <ChevronRight size={13} className="text-slate-400" />
                 <span className="text-slate-900 font-bold">{food.name}</span>
               </nav>
@@ -149,7 +166,7 @@ const FoodDetails = () => {
                   {/* Main Food Photo */}
                   <div className="relative h-80 sm:h-96 rounded-3xl overflow-hidden shadow-sm border border-slate-100 bg-slate-100 group">
                     <img
-                      src={galleryImages[activeImageIdx]}
+                      src={galleryImages[activeImageIdx] || galleryImages[0]}
                       alt={food.name}
                       className="w-full h-full object-cover transition duration-500"
                     />
@@ -157,6 +174,11 @@ const FoodDetails = () => {
                     {/* Bestseller Badge (Green) */}
                     <div className="absolute top-4 left-4 bg-emerald-600 text-white text-[11px] font-extrabold px-3 py-1 rounded-xl shadow-md">
                       Bestseller
+                    </div>
+
+                    {/* Angle Indicator Badge */}
+                    <div className="absolute bottom-4 right-4 bg-black/65 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-md border border-white/20">
+                      Camera Angle {activeImageIdx + 1} of {galleryImages.length}
                     </div>
 
                     {/* Favorite Heart Button */}
@@ -172,40 +194,41 @@ const FoodDetails = () => {
                     </button>
                   </div>
 
-                  {/* 4 Thumbnails Row below photo (3 angles + 1 video play) */}
-                  <div className="grid grid-cols-4 gap-3">
-                    {galleryImages.slice(0, 3).map((img, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setActiveImageIdx(idx)}
-                        className={`h-20 rounded-2xl overflow-hidden border-2 transition-all ${
-                          activeImageIdx === idx
-                            ? 'border-purple-600 ring-2 ring-purple-400/40 scale-102'
-                            : 'border-slate-200 hover:border-slate-300 opacity-80 hover:opacity-100'
-                        }`}
-                      >
-                        <img src={img} alt="thumb" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-
-                    {/* 4th: Play Video Thumbnail */}
-                    <button
-                      type="button"
-                      onClick={() => setShowVideoModal(true)}
-                      className="h-20 rounded-2xl bg-slate-900 text-white border-2 border-slate-800 flex items-center justify-center hover:bg-purple-900 transition group shadow-2xs relative overflow-hidden"
-                    >
-                      <img
-                        src="/food-images/chicken-biryani.jpg"
-                        alt="video bg"
-                        className="w-full h-full object-cover opacity-50 group-hover:opacity-40"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-8 h-8 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center">
-                          <Play size={14} className="fill-white text-white ml-0.5" />
-                        </div>
-                      </div>
-                    </button>
+                  {/* 4 Multi-Angle Thumbnails Row (All 4 angles of this exact dish) */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs font-bold text-slate-600">Explore All Angles of this Dish</span>
+                      <span className="text-[11px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md">
+                        4 Angles Available
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-3">
+                      {galleryImages.map((img, idx) => {
+                        const angleLabels = ['Plated', 'Closeup', 'Texture', 'Platter'];
+                        const isSelected = activeImageIdx === idx;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setActiveImageIdx(idx)}
+                            className={`group relative h-20 rounded-2xl overflow-hidden border-2 transition-all ${
+                              isSelected
+                                ? 'border-purple-600 ring-2 ring-purple-400/50 scale-102 shadow-md'
+                                : 'border-slate-200 hover:border-purple-300 opacity-80 hover:opacity-100'
+                            }`}
+                          >
+                            <img src={img} alt={`Angle ${idx + 1}`} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                            <div className={`absolute inset-x-0 bottom-0 py-1 px-1.5 text-center transition ${
+                              isSelected ? 'bg-purple-900/80 text-white font-extrabold' : 'bg-black/60 text-slate-200'
+                            }`}>
+                              <span className="text-[10px] tracking-wide block leading-none">
+                                {angleLabels[idx] || `Angle ${idx + 1}`}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Tabs Row: Details, Nutrition, Reviews (12k), Related */}
@@ -464,7 +487,7 @@ const FoodDetails = () => {
           {/* 2.1 HERO IMAGE WITH OVERLAID BACK AND FAVORITE BUTTONS */}
           <div className="relative h-64 sm:h-72 w-full bg-slate-100 overflow-hidden">
             <img
-              src={galleryImages[activeImageIdx]}
+              src={galleryImages[activeImageIdx] || galleryImages[0]}
               alt={food.name}
               className="w-full h-full object-cover"
             />
@@ -492,36 +515,39 @@ const FoodDetails = () => {
             <div className="absolute bottom-3 left-4 bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg shadow-md">
               Bestseller
             </div>
+
+            {/* Angle Indicator Badge */}
+            <div className="absolute bottom-3 right-4 bg-black/65 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-md border border-white/20">
+              Angle {activeImageIdx + 1} / {galleryImages.length}
+            </div>
           </div>
 
           {/* 2.2 4 THUMBNAILS ROW UNDER PHOTO */}
-          <div className="p-3 bg-white border-b border-slate-100">
+          <div className="p-3 bg-white border-b border-slate-100 space-y-1.5">
+            <div className="flex items-center justify-between px-0.5">
+              <span className="text-[11px] font-bold text-slate-600">Multi-Angle Views</span>
+              <span className="text-[10px] font-semibold text-purple-700">Tap angle to view</span>
+            </div>
             <div className="grid grid-cols-4 gap-2">
-              {galleryImages.slice(0, 3).map((img, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setActiveImageIdx(idx)}
-                  className={`h-14 rounded-xl overflow-hidden border transition-all ${
-                    activeImageIdx === idx ? 'border-purple-600 ring-2 ring-purple-400/40' : 'border-slate-200'
-                  }`}
-                >
-                  <img src={img} alt="thumb" className="w-full h-full object-cover" />
-                </button>
-              ))}
-
-              <button
-                type="button"
-                onClick={() => setShowVideoModal(true)}
-                className="h-14 rounded-xl bg-slate-900 text-white border border-slate-800 flex items-center justify-center relative overflow-hidden"
-              >
-                <img
-                  src="/food-images/chicken-biryani.jpg"
-                  alt="video"
-                  className="w-full h-full object-cover opacity-50"
-                />
-                <Play size={14} className="fill-white text-white absolute" />
-              </button>
+              {galleryImages.map((img, idx) => {
+                const angleLabels = ['Plated', 'Closeup', 'Texture', 'Platter'];
+                const isSelected = activeImageIdx === idx;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveImageIdx(idx)}
+                    className={`relative h-15 rounded-xl overflow-hidden border transition-all ${
+                      isSelected ? 'border-purple-600 ring-2 ring-purple-400/40 scale-102' : 'border-slate-200 opacity-75 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt={`Angle ${idx + 1}`} className="w-full h-full object-cover" />
+                    <span className="absolute bottom-0.5 right-0.5 bg-black/70 text-[8px] font-bold text-white px-1 rounded">
+                      {angleLabels[idx] || `${idx + 1}`}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

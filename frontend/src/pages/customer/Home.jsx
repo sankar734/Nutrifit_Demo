@@ -74,12 +74,12 @@ const Home = () => {
     }
   };
 
-  // Popular meals for top section (ensuring the 4 prototype dishes)
+  // Popular meals for top section (ensuring the 4 flagship dishes)
   const popularMeals = [
-    foods.find((f) => f.name === 'Berry Oats Bowl') || sampleFoods[0],
-    foods.find((f) => f.name === 'Grilled Chicken Bowl') || sampleFoods[1],
-    foods.find((f) => f.name === 'Avocado Toast') || sampleFoods[2],
-    foods.find((f) => f.name === 'Quinoa Salad' || f.name === 'Quinoa Delight') || sampleFoods[6] || sampleFoods[3],
+    foods.find((f) => f.name.toLowerCase().includes('chicken')) || sampleFoods[0],
+    foods.find((f) => f.name.toLowerCase().includes('paneer')) || sampleFoods[1],
+    foods.find((f) => f.name.toLowerCase().includes('omelette') || f.name.toLowerCase().includes('egg')) || sampleFoods[2],
+    foods.find((f) => f.name.toLowerCase().includes('sprouts') || f.name.toLowerCase().includes('salad')) || sampleFoods[3],
   ];
 
   return (
@@ -133,7 +133,7 @@ const Home = () => {
                 <div className="relative shrink-0">
                   <div className="w-64 h-64 sm:w-80 sm:h-80 rounded-full overflow-hidden shadow-2xl border-4 border-white relative">
                     <img
-                      src="/food-images/hero-bowl.jpg"
+                      src="/food-images/grilled-chicken-breast-1.jpg"
                       alt="Healthy Food Bowl"
                       className="w-full h-full object-cover transform hover:scale-105 transition duration-700"
                     />
@@ -316,8 +316,8 @@ const Home = () => {
             {/* Round Food Preview */}
             <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/80 shadow-xl shrink-0">
               <img
-                src="/food-images/hero-bowl.jpg"
-                alt="Healthy Bowl"
+                src="/food-images/grilled-chicken-breast-1.jpg"
+                alt="Healthy Food"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -366,9 +366,9 @@ const Home = () => {
               </Link>
             </div>
 
-            {/* Horizontal Food Card Scroller matching mobile screenshot */}
+            {/* Food Cards Grid */}
             <div className="grid grid-cols-2 gap-3">
-              {popularMeals.slice(0, 2).map((f) => (
+              {popularMeals.map((f) => (
                 <FoodCard key={f._id} food={f} onAdd={handleAdd} />
               ))}
             </div>

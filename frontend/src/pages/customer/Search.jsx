@@ -10,12 +10,14 @@ import {
   Leaf, 
   ChevronDown, 
   X,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Clock
 } from 'lucide-react';
 import MobileLayout from '../../components/customer/MobileLayout';
 import DesktopSidebar from '../../components/customer/DesktopSidebar';
 import FoodCard from '../../components/customer/FoodCard';
 import Toast from '../../components/customer/Toast';
+import { foodApi } from '../../services/api';
 import { useCart } from '../../context/CartContext';
 import { useDeviceMode } from '../../context/DeviceModeContext';
 import { useToast } from '../../hooks/useToast';
@@ -25,18 +27,23 @@ import sampleFoods from '../../data/sampleFoods';
 const desktopCategoryPills = [
   { id: 'all', label: 'All Dishes', icon: Sparkles },
   { id: 'high-protein', label: 'High Protein', icon: Flame },
-  { id: 'diabetic-friendly', label: 'Diabetic Friendly', icon: Droplet },
+  { id: 'grill', label: 'Grills & Tandoor', icon: Flame },
+  { id: 'breakfast', label: 'Healthy Breakfast', icon: Clock },
+  { id: 'salads', label: 'Salads & Bowls', icon: Leaf },
   { id: 'weight-loss', label: 'Weight Loss', icon: Scale },
-  { id: 'immunity', label: 'Immunity', icon: ShieldCheck },
-  { id: 'keto', label: 'Keto', icon: Sparkles },
-  { id: 'vegan', label: 'Vegan', icon: Leaf },
+  { id: 'pure-veg', label: 'Pure Veg', icon: Leaf },
+  { id: 'non-veg', label: 'Non-Veg', icon: Flame },
 ];
 
 // Mobile top chips
 const mobileChips = [
-  { id: 'all', label: 'All' },
+  { id: 'all', label: 'All Dishes' },
   { id: 'high-protein', label: 'High Protein' },
-  { id: 'diabetic-friendly', label: 'Diabetic' },
+  { id: 'grill', label: 'Grills' },
+  { id: 'breakfast', label: 'Breakfast' },
+  { id: 'salads', label: 'Salads' },
+  { id: 'pure-veg', label: 'Pure Veg' },
+  { id: 'non-veg', label: 'Non-Veg' },
 ];
 
 const dietTypesList = [
@@ -63,6 +70,7 @@ const Search = () => {
   const { isMobileView } = useDeviceMode();
   const { message, showToast } = useToast();
 
+  const [foods, setFoods] = useState(sampleFoods);
   const [query, setQuery] = useState(initialQuery);
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedDietTypes, setSelectedDietTypes] = useState(['All']);
@@ -70,6 +78,28 @@ const Search = () => {
   const [selectedCuisines, setSelectedCuisines] = useState([]);
   const [sortBy, setSortBy] = useState('popular');
   const [showMoreCuisines, setShowMoreCuisines] = useState(false);
+
+  // Sync with live API data if available
+  useEffect(() => {
+    foodApi
+      .list({ limit: 20 })
+      .then(({ data }) => {
+        if (data.data.foods?.length >= 4) {
+          const apiFoods = data.data.foods;
+          const merged = [...sampleFoods];
+          apiFoods.forEach((af) => {
+            const idx = merged.findIndex((m) => m.name.toLowerCase() === af.name.toLowerCase());
+            if (idx >= 0) {
+              merged[idx] = { ...merged[idx], ...af };
+            } else {
+              merged.push(af);
+            }
+          });
+          setFoods(merged);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleAdd = async (food) => {
     const res = await addToCart?.(food._id, 1, food);
@@ -104,7 +134,7 @@ const Search = () => {
 
   // Filter foods based on criteria
   const filteredFoods = useMemo(() => {
-    return sampleFoods.filter((f) => {
+    return foods.filter((f) => {
       // 1. Text Search Query
       if (query.trim()) {
         const q = query.toLowerCase();
@@ -115,17 +145,37 @@ const Search = () => {
       }
 
       // 2. Top Category Pills
-      if (activeCategory === 'high-protein' && (!f.dietaryTags?.some((t) => t.toLowerCase().includes('protein')) && (f.nutrition?.protein || 0) < 14)) {
-        return false;
-      }
-      if (activeCategory === 'diabetic-friendly' && !f.dietaryTags?.some((t) => t.toLowerCase().includes('diabetic')) && f.name !== 'Quinoa Delight') {
-        return false;
-      }
-      if (activeCategory === 'weight-loss' && (!f.dietaryTags?.some((t) => t.toLowerCase().includes('weight')) && (f.nutrition?.calories || 0) > 350)) {
-        return false;
-      }
-      if (activeCategory === 'vegan' && !f.isVeg) {
-        return false;
+      if (activeCategory === 'high-protein') {
+        if ((f.nutrition?.protein || 0) < 15 && !f.dietaryTags?.some((t) => t.toLowerCase().includes('protein'))) {
+          return false;
+        }
+      } else if (activeCategory === 'grill') {
+        const isGrill =
+          f.name.toLowerCase().includes('grill') ||
+          f.name.toLowerCase().includes('tikka') ||
+          f.category?.toLowerCase?.().includes('grill');
+        if (!isGrill) return false;
+      } else if (activeCategory === 'breakfast') {
+        const isBreakfast =
+          f.category === 'Breakfast' ||
+          f.category?.name === 'Healthy Breakfast' ||
+          f.name.toLowerCase().includes('omelette') ||
+          f.dietaryTags?.some((t) => t.toLowerCase().includes('breakfast'));
+        if (!isBreakfast) return false;
+      } else if (activeCategory === 'salads') {
+        const isSalad =
+          f.name.toLowerCase().includes('salad') ||
+          f.category === 'Salad & Bowls' ||
+          f.category?.name === 'Salad & Bowls';
+        if (!isSalad) return false;
+      } else if (activeCategory === 'weight-loss') {
+        if (!f.dietaryTags?.some((t) => t.toLowerCase().includes('weight')) && (f.nutrition?.calories || 0) > 350) {
+          return false;
+        }
+      } else if (activeCategory === 'pure-veg') {
+        if (!f.isVeg) return false;
+      } else if (activeCategory === 'non-veg') {
+        if (f.isVeg) return false;
       }
 
       // 3. Price Filter

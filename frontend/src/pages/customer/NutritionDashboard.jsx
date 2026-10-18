@@ -498,7 +498,7 @@ const NutritionDashboard = () => {
                         >
                           <div className="flex gap-3 items-center">
                             <img
-                              src={f.images?.[0] || '/food-images/hero-bowl.jpg'}
+                              src={f.images?.[0] || '/food-images/grilled-chicken-breast-1.jpg'}
                               alt={f.name}
                               className="w-16 h-16 rounded-xl object-cover shrink-0"
                             />
@@ -827,7 +827,7 @@ const NutritionDashboard = () => {
                       className="bg-white rounded-2xl p-3 border border-slate-100 shadow-xs flex items-center justify-between gap-3 cursor-pointer"
                     >
                       <img
-                        src={f.images?.[0] || '/food-images/hero-bowl.jpg'}
+                        src={f.images?.[0] || '/food-images/grilled-chicken-breast-1.jpg'}
                         alt={f.name}
                         className="w-16 h-16 rounded-xl object-cover shrink-0"
                       />

@@ -375,7 +375,7 @@ const ChefDashboard = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {(dashboard?.foods?.length ? dashboard.foods : sampleFoods).map((f) => (
                       <div key={f._id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3 hover:shadow-xs transition">
-                        <img src={f.images?.[0] || '/food-images/hero-bowl.jpg'} alt={f.name} className="w-14 h-14 rounded-xl object-cover shrink-0" />
+                        <img src={f.images?.[0] || '/food-images/grilled-chicken-breast-1.jpg'} alt={f.name} className="w-14 h-14 rounded-xl object-cover shrink-0" />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             <span className={`w-2 h-2 rounded-full ${f.isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
