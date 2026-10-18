@@ -21,7 +21,6 @@ async function seedFlagshipFoods() {
         icon: 'Flame',
         isActive: true,
       });
-      console.log('Created High Protein category');
     }
 
     let breakfastCat = await Category.findOne({ name: /breakfast/i });
@@ -33,7 +32,6 @@ async function seedFlagshipFoods() {
         icon: 'Clock',
         isActive: true,
       });
-      console.log('Created Breakfast category');
     }
 
     let saladCat = await Category.findOne({ name: /salad/i });
@@ -45,7 +43,6 @@ async function seedFlagshipFoods() {
         icon: 'Leaf',
         isActive: true,
       });
-      console.log('Created Salad category');
     }
 
     let diabeticCat = await Category.findOne({ name: /diabetic/i });
@@ -57,7 +54,6 @@ async function seedFlagshipFoods() {
         icon: 'Droplet',
         isActive: true,
       });
-      console.log('Created Diabetic Friendly category');
     }
 
     let chef = await Chef.findOne();
@@ -266,6 +262,111 @@ async function seedFlagshipFoods() {
         suitableFor: ['weight_loss', 'fitness'],
         tags: ['36g Protein', '310 kcal', 'Non-Veg', 'High Protein', 'Weight Loss', 'Salad', 'Grills'],
       },
+      {
+        name: 'Paneer Bhurji',
+        category: highProteinCat._id,
+        chef: chefId,
+        description:
+          'Scrambled fresh cottage cheese sautéed with finely chopped onions, tomatoes, bell peppers, green chilies, and aromatic spices. Served with warm tawa rotis and fresh lemon-onion salad.',
+        images: [
+          '/food-images/paneer-bhurji-1.jpg',
+          '/food-images/paneer-bhurji-2.jpg',
+          '/food-images/paneer-bhurji-3.jpg',
+          '/food-images/paneer-bhurji-4.jpg',
+        ],
+        price: 199,
+        discountPrice: 199,
+        isVeg: true,
+        rating: 4.8,
+        totalReviews: 2530,
+        nutrition: { calories: 340, protein: 26, carbs: 12, fat: 21, fiber: 4, sugar: 3 },
+        suitableFor: ['fitness', 'weight_loss'],
+        tags: ['26g Protein', '340 kcal', 'Pure Veg', 'High Protein', 'Keto'],
+      },
+      {
+        name: 'Vegetable Omelette',
+        category: breakfastCat._id,
+        chef: chefId,
+        description:
+          'Whole farm egg golden omelette loaded with sautéed mushrooms, bell peppers, sweet corn, diced tomatoes, fresh cilantro, and a side of mixed green salad with homemade tomato relish.',
+        images: [
+          '/food-images/vegetable-omelette-1.jpg',
+          '/food-images/vegetable-omelette-2.jpg',
+          '/food-images/vegetable-omelette-3.jpg',
+          '/food-images/vegetable-omelette-4.jpg',
+        ],
+        price: 159,
+        discountPrice: 159,
+        isVeg: false,
+        rating: 4.8,
+        totalReviews: 2210,
+        nutrition: { calories: 240, protein: 18, carbs: 8, fat: 14, fiber: 3, sugar: 3 },
+        suitableFor: ['fitness', 'weight_loss'],
+        tags: ['18g Protein', '240 kcal', 'Eggetarian', 'High Protein', 'Breakfast', 'Weight Loss'],
+      },
+      {
+        name: 'Cauliflower Rice Bowl',
+        category: diabeticCat._id,
+        chef: chefId,
+        description:
+          'Fluffy riced cauliflower gently sautéed with steamed broccoli florets, sweet corn, green peas, diced bell peppers, roasted cumin, and cooling minted hung curd dip. Ultra low carb and keto friendly.',
+        images: [
+          '/food-images/cauliflower-rice-bowl-1.jpg',
+          '/food-images/cauliflower-rice-bowl-2.jpg',
+          '/food-images/cauliflower-rice-bowl-3.jpg',
+          '/food-images/cauliflower-rice-bowl-4.jpg',
+        ],
+        price: 169,
+        discountPrice: 169,
+        isVeg: true,
+        rating: 4.7,
+        totalReviews: 1780,
+        nutrition: { calories: 180, protein: 8, carbs: 14, fat: 5, fiber: 8, sugar: 4 },
+        suitableFor: ['diabetic_friendly', 'weight_loss'],
+        tags: ['Diabetic Friendly', 'Pure Veg', 'Keto', 'Low Carb', 'Weight Loss', '8g Protein', 'Salad'],
+      },
+      {
+        name: 'Vegetable Pongal',
+        category: diabeticCat._id,
+        chef: chefId,
+        description:
+          'Traditional moong dal and foxtail millet slow-cooked to a comforting creamy texture with carrots, beans, peas, tempered with golden cashews, crushed black pepper, cumin, ginger, and curry leaves.',
+        images: [
+          '/food-images/vegetable-pongal-1.jpg',
+          '/food-images/vegetable-pongal-2.jpg',
+          '/food-images/vegetable-pongal-3.jpg',
+          '/food-images/vegetable-pongal-4.jpg',
+        ],
+        price: 149,
+        discountPrice: 149,
+        isVeg: true,
+        rating: 4.8,
+        totalReviews: 2890,
+        nutrition: { calories: 270, protein: 12, carbs: 44, fat: 6, fiber: 9, sugar: 3 },
+        suitableFor: ['diabetic_friendly', 'heart_healthy', 'weight_loss'],
+        tags: ['Diabetic Friendly', 'Pure Veg', 'Breakfast', 'High Fiber', '12g Protein'],
+      },
+      {
+        name: 'Paneer Butter Masala',
+        category: highProteinCat._id,
+        chef: chefId,
+        description:
+          'Succulent cottage cheese cubes simmered in a luscious cashew-tomato gravy, finished with cold-pressed butter, fresh kasuri methi, and a light swirl of low-fat cream. Served with whole wheat roti.',
+        images: [
+          '/food-images/paneer-butter-masala-1.jpg',
+          '/food-images/paneer-butter-masala-2.jpg',
+          '/food-images/paneer-butter-masala-3.jpg',
+          '/food-images/paneer-butter-masala-4.jpg',
+        ],
+        price: 239,
+        discountPrice: 239,
+        isVeg: true,
+        rating: 4.9,
+        totalReviews: 3820,
+        nutrition: { calories: 380, protein: 22, carbs: 16, fat: 24, fiber: 5, sugar: 6 },
+        suitableFor: ['fitness'],
+        tags: ['22g Protein', '380 kcal', 'Pure Veg', 'High Protein'],
+      },
     ];
 
     for (const d of allDishes) {
@@ -289,7 +390,7 @@ async function seedFlagshipFoods() {
       }
     }
 
-    console.log('Finished seeding all 9 flagship multi-angle dishes successfully!');
+    console.log('Finished seeding all 14 flagship multi-angle dishes successfully!');
     process.exit(0);
   } catch (err) {
     console.error('Error seeding dishes:', err);
