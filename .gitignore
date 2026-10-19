@@ -12,6 +12,9 @@ frontend/.env
 # Local Database Files
 mongo_data/
 */mongo_data/
+data/
+*/data/
+backend/data/
 
 # Build artifacts
 dist/

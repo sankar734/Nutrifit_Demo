@@ -56,6 +56,17 @@ async function seedFlagshipFoods() {
       });
     }
 
+    let weightLossCat = await Category.findOne({ name: /weight loss/i });
+    if (!weightLossCat) {
+      weightLossCat = await Category.create({
+        name: 'Weight Loss Meals',
+        slug: 'weight-loss-meals',
+        description: 'Calorie conscious, nutrient dense weight management meals',
+        icon: 'TrendingDown',
+        isActive: true,
+      });
+    }
+
     let chef = await Chef.findOne();
     if (!chef) {
       const User = require('../models/User');
@@ -366,6 +377,111 @@ async function seedFlagshipFoods() {
         nutrition: { calories: 380, protein: 22, carbs: 16, fat: 24, fiber: 5, sugar: 6 },
         suitableFor: ['fitness'],
         tags: ['22g Protein', '380 kcal', 'Pure Veg', 'High Protein'],
+      },
+      {
+        name: 'Vegetable Biryani',
+        category: weightLossCat._id,
+        chef: chefId,
+        description:
+          'Fragrant long-grain aged basmati rice layered with garden-fresh cauliflower florets, carrots, french beans, green peas, and whole aromatics. Garnished with golden fried onions, roasted whole cashews, fresh mint, and served with cool cucumber raita and spicy salan.',
+        images: [
+          '/food-images/vegetable-biryani-1.jpg',
+          '/food-images/vegetable-biryani-2.jpg',
+          '/food-images/vegetable-biryani-3.jpg',
+          '/food-images/vegetable-biryani-4.jpg',
+        ],
+        price: 219,
+        discountPrice: 219,
+        isVeg: true,
+        rating: 4.8,
+        totalReviews: 2740,
+        nutrition: { calories: 360, protein: 12, carbs: 58, fat: 8, fiber: 7, sugar: 4 },
+        suitableFor: ['weight_loss', 'diabetic_friendly'],
+        tags: ['12g Protein', '360 kcal', 'Pure Veg', 'High Fiber', 'Biryani'],
+      },
+      {
+        name: 'Millet Dosa with Sambar',
+        category: diabeticCat._id,
+        chef: chefId,
+        description:
+          'Golden crisp roasted fermented millet crepe (kodo and barnyard millet) served on a banana leaf with steaming hot drumstick-lentil sambar, fresh grated coconut chutney, and roasted tomato chutney. Zero refined flour and low glycemic index.',
+        images: [
+          '/food-images/millet-dosa-sambar-1.jpg',
+          '/food-images/millet-dosa-sambar-2.jpg',
+          '/food-images/millet-dosa-sambar-3.jpg',
+          '/food-images/millet-dosa-sambar-4.jpg',
+        ],
+        price: 139,
+        discountPrice: 139,
+        isVeg: true,
+        rating: 4.9,
+        totalReviews: 3120,
+        nutrition: { calories: 220, protein: 10, carbs: 36, fat: 4, fiber: 9, sugar: 2 },
+        suitableFor: ['diabetic_friendly', 'weight_loss'],
+        tags: ['Diabetic Friendly', 'Pure Veg', 'Breakfast', 'Low GI', 'High Fiber', '10g Protein'],
+      },
+      {
+        name: 'Chicken Biryani',
+        category: highProteinCat._id,
+        chef: chefId,
+        description:
+          'Authentic dum-cooked fragrant saffron basmati rice layered with succulent bone-in tender chicken, whole spices, caramelized shallots, fresh coriander, and mint. Served in a copper handi with creamy onion raita and rich mirchi ka salan.',
+        images: [
+          '/food-images/chicken-biryani-1.jpg',
+          '/food-images/chicken-biryani-2.jpg',
+          '/food-images/chicken-biryani-3.jpg',
+          '/food-images/chicken-biryani-4.jpg',
+        ],
+        price: 279,
+        discountPrice: 279,
+        isVeg: false,
+        rating: 4.9,
+        totalReviews: 4520,
+        nutrition: { calories: 480, protein: 36, carbs: 52, fat: 12, fiber: 5, sugar: 3 },
+        suitableFor: ['fitness', 'weight_loss'],
+        tags: ['36g Protein', '480 kcal', 'Non-Veg', 'High Protein', 'Dum Biryani'],
+      },
+      {
+        name: 'Grilled Chicken with Vegetables',
+        category: highProteinCat._id,
+        chef: chefId,
+        description:
+          'Thick-cut chicken breast seasoned with crushed rosemary, black pepper, and garlic herb oil, flame-grilled and sliced alongside charred broccoli, zucchini, bell peppers, sweet potatoes, and yogurt tartar dip.',
+        images: [
+          '/food-images/grilled-chicken-vegetables-1.jpg',
+          '/food-images/grilled-chicken-vegetables-2.jpg',
+          '/food-images/grilled-chicken-vegetables-3.jpg',
+          '/food-images/grilled-chicken-vegetables-4.jpg',
+        ],
+        price: 269,
+        discountPrice: 269,
+        isVeg: false,
+        rating: 4.9,
+        totalReviews: 3210,
+        nutrition: { calories: 350, protein: 44, carbs: 12, fat: 9, fiber: 6, sugar: 3 },
+        suitableFor: ['fitness', 'weight_loss'],
+        tags: ['44g Protein', '350 kcal', 'Non-Veg', 'High Protein', 'Keto', 'Grills'],
+      },
+      {
+        name: 'Fish Curry with Rice',
+        category: highProteinCat._id,
+        chef: chefId,
+        description:
+          'Traditional coastal sea bass steaks simmered in a tangy tomato-tamarind and coconut gravy tempered with curry leaves and mustard seeds. Served with steamed fragrant ponni rice, poriyal, lemon, and crispy appalam.',
+        images: [
+          '/food-images/fish-curry-rice-1.jpg',
+          '/food-images/fish-curry-rice-2.jpg',
+          '/food-images/fish-curry-rice-3.jpg',
+          '/food-images/fish-curry-rice-4.jpg',
+        ],
+        price: 289,
+        discountPrice: 289,
+        isVeg: false,
+        rating: 4.9,
+        totalReviews: 3670,
+        nutrition: { calories: 420, protein: 34, carbs: 48, fat: 10, fiber: 4, sugar: 3 },
+        suitableFor: ['fitness', 'heart_healthy'],
+        tags: ['34g Protein', '420 kcal', 'Non-Veg', 'High Protein', 'Omega 3'],
       },
     ];
 
