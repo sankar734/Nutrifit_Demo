@@ -522,6 +522,121 @@ const run = async () => {
       rating: 4.9,
       totalReviews: 3670,
     },
+    {
+      chef: chef._id,
+      category: categories[2]._id, // High Protein
+      name: 'Egg Fried Rice',
+      description:
+        'Fragrant basmati wok-tossed with triple scrambled farm eggs, sweet carrots, crunchy green peas, spring onion greens, cracked black pepper, and low-sodium soy reduction. High in bio-available protein and low in unhealthy oils.',
+      images: [
+        '/food-images/egg-fried-rice-1.jpg',
+        '/food-images/egg-fried-rice-2.jpg',
+        '/food-images/egg-fried-rice-3.jpg',
+        '/food-images/egg-fried-rice-4.jpg',
+      ],
+      price: 179,
+      discountPrice: 179,
+      isVeg: false,
+      nutrition: { calories: 340, protein: 22, carbs: 42, fat: 10, fiber: 4, sugar: 2 },
+      suitableFor: ['fitness', 'weight_loss'],
+      tags: ['22g Protein', '340 kcal', 'Eggetarian', 'High Protein', 'Asian'],
+      portionSize: '1 bowl (350g)',
+      preparationTimeMinutes: 20,
+      rating: 4.8,
+      totalReviews: 2640,
+    },
+    {
+      chef: chef._id,
+      category: categories[0]._id, // Healthy Breakfast
+      name: 'Mini Idli',
+      description:
+        'Bite-sized soft steamed button idlis tossed with cold-pressed gingelly oil, mustard tempering, and fresh curry leaves. Served on a banana leaf alongside piping hot vegetable sambar, creamy coconut chutney, and spicy tomato chutney.',
+      images: [
+        '/food-images/mini-idli-1.jpg',
+        '/food-images/mini-idli-2.jpg',
+        '/food-images/mini-idli-3.jpg',
+        '/food-images/mini-idli-4.jpg',
+      ],
+      price: 119,
+      discountPrice: 119,
+      isVeg: true,
+      nutrition: { calories: 210, protein: 8, carbs: 40, fat: 2, fiber: 5, sugar: 2 },
+      suitableFor: ['diabetic_friendly', 'weight_loss'],
+      tags: ['Pure Veg', 'Breakfast', 'Low Calorie', '8g Protein', 'South Indian'],
+      portionSize: '14 mini idlis + chutney + sambar (320g)',
+      preparationTimeMinutes: 15,
+      rating: 4.9,
+      totalReviews: 3410,
+    },
+    {
+      chef: chef._id,
+      category: categories[3]._id, // Weight Loss Meals
+      name: 'Vegetable Sandwich',
+      description:
+        'Crispy panini-pressed multigrain bread loaded with crunchy Persian cucumbers, ripe tomatoes, grated carrots, red onion rings, fresh romaine lettuce, and mint yogurt spread. Served with baked potato wedges and tomato salsa.',
+      images: [
+        '/food-images/vegetable-sandwich-1.jpg',
+        '/food-images/vegetable-sandwich-2.jpg',
+        '/food-images/vegetable-sandwich-3.jpg',
+        '/food-images/vegetable-sandwich-4.jpg',
+      ],
+      price: 149,
+      discountPrice: 149,
+      isVeg: true,
+      nutrition: { calories: 260, protein: 11, carbs: 38, fat: 7, fiber: 8, sugar: 4 },
+      suitableFor: ['weight_loss', 'diabetic_friendly'],
+      tags: ['Pure Veg', 'High Fiber', 'Weight Loss', '11g Protein', 'Breakfast'],
+      portionSize: '2 grilled halves + wedges (280g)',
+      preparationTimeMinutes: 15,
+      rating: 4.7,
+      totalReviews: 2190,
+    },
+    {
+      chef: chef._id,
+      category: categories[2]._id, // High Protein
+      name: 'Chicken Rice Bowl',
+      description:
+        'Herb-crusted char-grilled chicken breast slices over wholesome brown rice bed, paired with shredded purple cabbage, sweet corn, baby cucumbers, cherry tomatoes, and garlic hung-curd ranch dressing.',
+      images: [
+        '/food-images/chicken-rice-bowl-1.jpg',
+        '/food-images/chicken-rice-bowl-2.jpg',
+        '/food-images/chicken-rice-bowl-3.jpg',
+        '/food-images/chicken-rice-bowl-4.jpg',
+      ],
+      price: 259,
+      discountPrice: 259,
+      isVeg: false,
+      nutrition: { calories: 390, protein: 42, carbs: 32, fat: 8, fiber: 7, sugar: 3 },
+      suitableFor: ['fitness', 'weight_loss'],
+      tags: ['42g Protein', '390 kcal', 'Non-Veg', 'High Protein', 'Salad'],
+      portionSize: '1 bowl (380g)',
+      preparationTimeMinutes: 20,
+      rating: 4.9,
+      totalReviews: 3980,
+    },
+    {
+      chef: chef._id,
+      category: categories[3]._id, // Weight Loss Meals
+      name: 'Vegetable Pasta',
+      description:
+        'Al-dente 100% durum whole wheat penne pasta sautéed with charred broccoli florets, sweet tri-color bell peppers, zucchini, blistered cherry tomatoes, fresh basil, and light garlic olive oil with micro-planed parmesan.',
+      images: [
+        '/food-images/vegetable-pasta-1.jpg',
+        '/food-images/vegetable-pasta-2.jpg',
+        '/food-images/vegetable-pasta-3.jpg',
+        '/food-images/vegetable-pasta-4.jpg',
+      ],
+      price: 229,
+      discountPrice: 229,
+      isVeg: true,
+      nutrition: { calories: 320, protein: 14, carbs: 54, fat: 6, fiber: 9, sugar: 4 },
+      suitableFor: ['weight_loss', 'heart_healthy'],
+      tags: ['Pure Veg', 'High Fiber', 'Whole Wheat', '14g Protein'],
+      portionSize: '1 bowl (350g)',
+      preparationTimeMinutes: 20,
+      rating: 4.8,
+      totalReviews: 2870,
+    },
   ]);
 
   console.log('Seed complete!');
