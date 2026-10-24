@@ -637,6 +637,121 @@ const run = async () => {
       rating: 4.8,
       totalReviews: 2870,
     },
+    {
+      chef: chef._id,
+      category: categories[3]._id, // Weight Loss Meals
+      name: 'Baked Vegetable Casserole',
+      description:
+        'Tender oven-roasted broccoli, sweet corn, zucchini, diced bell peppers, and blistered cherry tomatoes folded in a light herb béchamel and crowned with golden bubbly melted low-fat mozzarella cheese.',
+      images: [
+        '/food-images/baked-vegetable-casserole-1.jpg',
+        '/food-images/baked-vegetable-casserole-2.jpg',
+        '/food-images/baked-vegetable-casserole-3.jpg',
+        '/food-images/baked-vegetable-casserole-4.jpg',
+      ],
+      price: 249,
+      discountPrice: 249,
+      isVeg: true,
+      nutrition: { calories: 290, protein: 16, carbs: 24, fat: 12, fiber: 8, sugar: 4 },
+      suitableFor: ['weight_loss', 'fitness'],
+      tags: ['16g Protein', '290 kcal', 'Pure Veg', 'High Fiber', 'Continental'],
+      portionSize: '1 baking dish serving (340g)',
+      preparationTimeMinutes: 25,
+      rating: 4.8,
+      totalReviews: 2580,
+    },
+    {
+      chef: chef._id,
+      category: categories[3]._id, // Weight Loss Meals
+      name: 'Vegetable Fried Rice',
+      description:
+        'Wok-charred fragrant basmati rice tossed with diced sweet carrots, tender sweet corn, farm green peas, crisp cabbage, spring onions, and toasted sesame oil. Lightly seasoned with cracked black pepper and low-sodium soy sauce.',
+      images: [
+        '/food-images/vegetable-fried-rice-1.jpg',
+        '/food-images/vegetable-fried-rice-2.jpg',
+        '/food-images/vegetable-fried-rice-3.jpg',
+        '/food-images/vegetable-fried-rice-4.jpg',
+      ],
+      price: 169,
+      discountPrice: 169,
+      isVeg: true,
+      nutrition: { calories: 280, protein: 9, carbs: 48, fat: 5, fiber: 6, sugar: 3 },
+      suitableFor: ['weight_loss', 'diabetic_friendly'],
+      tags: ['Pure Veg', 'Low Calorie', 'High Fiber', 'Asian'],
+      portionSize: '1 bowl (350g)',
+      preparationTimeMinutes: 20,
+      rating: 4.7,
+      totalReviews: 2840,
+    },
+    {
+      chef: chef._id,
+      category: categories[2]._id, // High Protein
+      name: 'Chicken Manchurian',
+      description:
+        'Tender minced chicken meatballs wok-glazed in a savoury ginger, garlic, green chili, and scallion dark sauce with sweet bell peppers and red onions. Packed with lean poultry protein and authentic Indo-Chinese flavors.',
+      images: [
+        '/food-images/chicken-manchurian-1.jpg',
+        '/food-images/chicken-manchurian-2.jpg',
+        '/food-images/chicken-manchurian-3.jpg',
+        '/food-images/chicken-manchurian-4.jpg',
+      ],
+      price: 239,
+      discountPrice: 239,
+      isVeg: false,
+      nutrition: { calories: 360, protein: 32, carbs: 18, fat: 12, fiber: 4, sugar: 4 },
+      suitableFor: ['fitness', 'weight_loss'],
+      tags: ['32g Protein', '360 kcal', 'Non-Veg', 'High Protein', 'Asian'],
+      portionSize: '1 bowl (350g)',
+      preparationTimeMinutes: 20,
+      rating: 4.9,
+      totalReviews: 3720,
+    },
+    {
+      chef: chef._id,
+      category: categories[2]._id, // High Protein
+      name: 'Hakka Noodles',
+      description:
+        'Wok-tossed whole wheat noodles loaded with flame-seared seasoned chicken breast strips, crunchy julienned bell peppers, carrots, shredded cabbage, spring onions, and garlic schezwan relish.',
+      images: [
+        '/food-images/hakka-noodles-1.jpg',
+        '/food-images/hakka-noodles-2.jpg',
+        '/food-images/hakka-noodles-3.jpg',
+        '/food-images/hakka-noodles-4.jpg',
+      ],
+      price: 229,
+      discountPrice: 229,
+      isVeg: false,
+      nutrition: { calories: 380, protein: 28, carbs: 46, fat: 9, fiber: 6, sugar: 3 },
+      suitableFor: ['fitness', 'weight_loss'],
+      tags: ['28g Protein', '380 kcal', 'Non-Veg', 'High Protein', 'Asian'],
+      portionSize: '1 plate (380g)',
+      preparationTimeMinutes: 20,
+      rating: 4.8,
+      totalReviews: 3150,
+    },
+    {
+      chef: chef._id,
+      category: categories[3]._id, // Weight Loss Meals
+      name: 'Vegetable Momos',
+      description:
+        'Authentic hand-pleated dumplings stuffed with finely minced crisp cabbage, carrots, sweet corn, ginger, and scallions, gently steamed to translucent tenderness. Served with fiery roasted red chili tomato dip.',
+      images: [
+        '/food-images/vegetable-momos-1.jpg',
+        '/food-images/vegetable-momos-2.jpg',
+        '/food-images/vegetable-momos-3.jpg',
+        '/food-images/vegetable-momos-4.jpg',
+      ],
+      price: 139,
+      discountPrice: 139,
+      isVeg: true,
+      nutrition: { calories: 180, protein: 7, carbs: 32, fat: 2, fiber: 5, sugar: 2 },
+      suitableFor: ['weight_loss', 'diabetic_friendly'],
+      tags: ['Pure Veg', 'Steamed', 'Low Calorie', 'High Fiber', 'Snack'],
+      portionSize: '6 steamed momos + dip (240g)',
+      preparationTimeMinutes: 15,
+      rating: 4.9,
+      totalReviews: 4120,
+    },
   ]);
 
   console.log('Seed complete!');
