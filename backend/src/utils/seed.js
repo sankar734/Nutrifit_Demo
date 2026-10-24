@@ -752,6 +752,121 @@ const run = async () => {
       rating: 4.9,
       totalReviews: 4120,
     },
+    {
+      chef: chef._id,
+      category: categories[3]._id, // Weight Loss Meals / Salad
+      name: 'Chickpea Protein Bowl',
+      description:
+        'Wholesome spiced roasted chickpeas served over a bed of tricolor quinoa, crisp diced cucumbers, cherry tomatoes, shredded purple cabbage, avocado slices, and fresh herbs, dressed with creamy tahini garlic dressing.',
+      images: [
+        '/food-images/chickpea-protein-bowl-1.jpg',
+        '/food-images/chickpea-protein-bowl-2.jpg',
+        '/food-images/chickpea-protein-bowl-3.jpg',
+        '/food-images/chickpea-protein-bowl-4.jpg',
+      ],
+      price: 179,
+      discountPrice: 169,
+      isVeg: true,
+      nutrition: { calories: 380, protein: 18, carbs: 52, fat: 12, fiber: 14, sugar: 4 },
+      suitableFor: ['fitness', 'weight_loss', 'heart_healthy'],
+      tags: ['Pure Veg', 'High Protein', 'High Fiber', 'Vegan Friendly', 'Salad Bowl'],
+      portionSize: '1 bowl (380g)',
+      preparationTimeMinutes: 20,
+      rating: 4.9,
+      totalReviews: 3240,
+    },
+    {
+      chef: chef._id,
+      category: categories[2]._id, // High Protein
+      name: 'Paneer Quinoa Bowl',
+      description:
+        'Golden pan-seared malai paneer cubes tossed in fragrant herbs, served over fluffy organic quinoa, crunchy cucumbers, fresh avocado slices, cherry tomatoes, and purple cabbage with low-fat herb yogurt drizzle.',
+      images: [
+        '/food-images/paneer-quinoa-bowl-1.jpg',
+        '/food-images/paneer-quinoa-bowl-2.jpg',
+        '/food-images/paneer-quinoa-bowl-3.jpg',
+        '/food-images/paneer-quinoa-bowl-4.jpg',
+      ],
+      price: 219,
+      discountPrice: 199,
+      isVeg: true,
+      nutrition: { calories: 420, protein: 26, carbs: 36, fat: 18, fiber: 8, sugar: 3 },
+      suitableFor: ['fitness', 'weight_gain', 'diabetic_friendly'],
+      tags: ['Pure Veg', 'High Protein', 'Low Carb', 'Cottage Cheese', 'Quinoa Bowl'],
+      portionSize: '1 bowl (380g)',
+      preparationTimeMinutes: 20,
+      rating: 4.9,
+      totalReviews: 3890,
+    },
+    {
+      chef: chef._id,
+      category: categories[3]._id, // Weight Loss Meals
+      name: 'Sprouts and Corn Salad',
+      description:
+        'Refreshing medley of sprouted green moong beans and sweet tender golden corn kernels tossed with diced bell peppers, juicy cucumbers, tomatoes, fresh cilantro, roasted cumin, and zesty lemon dressing.',
+      images: [
+        '/food-images/sprouts-and-corn-salad-1.jpg',
+        '/food-images/sprouts-and-corn-salad-2.jpg',
+        '/food-images/sprouts-and-corn-salad-3.jpg',
+        '/food-images/sprouts-and-corn-salad-4.jpg',
+      ],
+      price: 129,
+      discountPrice: 119,
+      isVeg: true,
+      nutrition: { calories: 190, protein: 11, carbs: 32, fat: 3, fiber: 9, sugar: 5 },
+      suitableFor: ['weight_loss', 'diabetic_friendly', 'heart_healthy'],
+      tags: ['Pure Veg', 'Low Calorie', 'High Fiber', 'Immunity Booster', 'Fresh Salad'],
+      portionSize: '1 bowl (300g)',
+      preparationTimeMinutes: 15,
+      rating: 4.8,
+      totalReviews: 2750,
+    },
+    {
+      chef: chef._id,
+      category: categories[0]._id, // Healthy Breakfast
+      name: 'Mini Idli with Sambar',
+      description:
+        'Soft bite-sized button idlis steamed to perfection, immersed in piping hot traditional lentil and drumstick vegetable sambar, garnished with fresh coriander and tempered mustard seeds, served with freshly ground coconut chutney.',
+      images: [
+        '/food-images/mini-idli-with-sambar-1.jpg',
+        '/food-images/mini-idli-with-sambar-2.jpg',
+        '/food-images/mini-idli-with-sambar-3.jpg',
+        '/food-images/mini-idli-with-sambar-4.jpg',
+      ],
+      price: 119,
+      discountPrice: 109,
+      isVeg: true,
+      nutrition: { calories: 240, protein: 9, carbs: 46, fat: 2.5, fiber: 6, sugar: 3 },
+      suitableFor: ['heart_healthy', 'senior_citizen', 'kids', 'diabetic_friendly'],
+      tags: ['Pure Veg', 'South Indian', 'Steamed', 'Gut Healthy', 'Traditional Breakfast'],
+      portionSize: '14 mini idlis with sambar & chutney (350g)',
+      preparationTimeMinutes: 15,
+      rating: 4.9,
+      totalReviews: 5420,
+    },
+    {
+      chef: chef._id,
+      category: categories[2]._id, // High Protein
+      name: 'Chicken Tikka Bowl',
+      description:
+        'Tender tandoori-spiced char-grilled chicken breast tikka chunks served over a wholesome quinoa grain bowl with sliced red onions, juicy tomatoes, cool crisp cucumbers, fresh greens, and light mint yogurt dressing.',
+      images: [
+        '/food-images/chicken-tikka-bowl-1.jpg',
+        '/food-images/chicken-tikka-bowl-2.jpg',
+        '/food-images/chicken-tikka-bowl-3.jpg',
+        '/food-images/chicken-tikka-bowl-4.jpg',
+      ],
+      price: 249,
+      discountPrice: 229,
+      isVeg: false,
+      nutrition: { calories: 430, protein: 38, carbs: 28, fat: 12, fiber: 6, sugar: 3 },
+      suitableFor: ['fitness', 'weight_loss'],
+      tags: ['Non-Veg', 'High Protein', 'Lean Meat', 'Char Grilled', 'Tandoori Bowl'],
+      portionSize: '1 bowl (400g)',
+      preparationTimeMinutes: 20,
+      rating: 4.9,
+      totalReviews: 4610,
+    },
   ]);
 
   console.log('Seed complete!');
