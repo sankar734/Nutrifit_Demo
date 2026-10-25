@@ -269,6 +269,13 @@ const NutritionDashboard = () => {
         }
       }
 
+      if (/soup|broth|warm|hot/i.test(lower)) {
+        if (nameLower.includes('soup') || tagsLower.includes('soup')) {
+          score += 45;
+          reason = 'Warm, soothing low-calorie nutrient-dense soup';
+        }
+      }
+
       if (wantsPureVeg) {
         if (f.isVeg) score += 25;
         else score -= 90;
@@ -419,15 +426,15 @@ const NutritionDashboard = () => {
       const lower = text.toLowerCase();
 
       if (lower.includes('weight') || lower.includes('fat') || lower.includes('diet') || lower.includes('loss')) {
-        reply = `For your weight loss goal (${profile.weightKg}kg → target ${computedMetrics.targetCalories} kcal), focus on calorie-deficit meals high in fiber!\n\n⭐ Top Picks: Sprouts and Corn Salad (190 kcal • 11g protein), Chickpea Protein Bowl (380 kcal • 18g protein), and Steamed Vegetable Momos (180 kcal). They keep you full for 4+ hours and avoid glucose spikes!`;
+        reply = `For your weight loss goal (${profile.weightKg}kg → target ${computedMetrics.targetCalories} kcal), focus on calorie-deficit meals high in fiber!\n\n⭐ Top Picks: Tomato Basil Soup (140 kcal), Mushroom Soup (160 kcal), Sprouts and Corn Salad (190 kcal), and Chickpea Protein Bowl (380 kcal). They keep you full for 4+ hours and avoid glucose spikes!`;
       } else if (lower.includes('protein') || lower.includes('muscle') || lower.includes('gym')) {
-        reply = `To hit your ${computedMetrics.proteinGrams}g daily protein target for muscle gain, I recommend:\n\n1. Chicken Tikka Bowl (38g protein • 430 kcal)\n2. Grilled Chicken Breast (42g protein • 380 kcal)\n3. Paneer Quinoa Bowl (26g protein • 420 kcal)\n\nAll freshly cooked in small hygienic batches with low oil!`;
+        reply = `To hit your ${computedMetrics.proteinGrams}g daily protein target for muscle gain, I recommend:\n\n1. Greek Yogurt Fruit Bowl (16g protein • 290 kcal)\n2. Chicken Tikka Bowl (38g protein • 430 kcal)\n3. Grilled Chicken Breast (42g protein • 380 kcal)\n4. Paneer Quinoa Bowl (26g protein • 420 kcal)\n\nAll freshly cooked in small hygienic batches with low oil!`;
       } else if (lower.includes('diabet') || lower.includes('sugar') || lower.includes('blood')) {
-        reply = `For diabetic-safe eating, prioritize complex carbohydrates with high soluble fiber!\n\nI recommend Vegetable Oats Upma, Multigrain Chapati with Vegetable Curry, or Chickpea Protein Bowl. Both prevent insulin spikes and provide steady energy!`;
-      } else if (lower.includes('dinner') || lower.includes('night')) {
-        reply = `For a light healthy dinner under 400 kcal, try the Paneer Quinoa Bowl (420 kcal • 26g protein) or Sprouts and Corn Salad (190 kcal). Eating lighter in the evening boosts fat burning while you sleep!`;
+        reply = `For diabetic-safe eating, prioritize complex carbohydrates with high soluble fiber!\n\nI recommend Greek Yogurt Fruit Bowl (fresh berries & chia), Tomato Basil Soup, or Chickpea Protein Bowl. Both prevent insulin spikes and provide steady energy!`;
+      } else if (lower.includes('dinner') || lower.includes('night') || lower.includes('soup')) {
+        reply = `For a light healthy dinner under 300 kcal, try our Tomato Basil Soup (140 kcal) or Mushroom Soup (160 kcal • 7g protein). Eating warm herbal soup in the evening boosts fat burning and digestion while you sleep!`;
       } else if (lower.includes('breakfast') || lower.includes('morning')) {
-        reply = `Start your morning with slow-burning complex carbs and clean protein! I recommend our Mini Idli with Sambar (240 kcal • 9g protein) or Vegetable Oats Upma for steady all-morning stamina!`;
+        reply = `Start your morning with slow-burning complex carbs and clean protein! I recommend our Greek Yogurt Fruit Bowl (290 kcal • 16g protein), Mini Idli with Sambar, or Vegetable Oats Upma for steady all-morning stamina!`;
       } else {
         reply = `Great question! With your current BMR of ${computedMetrics.bmr} kcal and daily TDEE of ${computedMetrics.tdee} kcal, you have ${remainingCalories} kcal left today.\n\nHere are top chef-prepared dishes tailored directly to what you asked:`;
       }
