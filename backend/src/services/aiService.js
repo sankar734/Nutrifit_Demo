@@ -159,8 +159,125 @@ const getActiveProvider = () => {
   return 'rule-based';
 };
 
-const chatWithAssistant = async (message, context = {}) => {
-  const systemPrompt = buildNutritionSystemPrompt();
+// Intelligently matches and ranks available dishes based on user query and health profile
+const matchFoodsForQuery = (message = '', context = {}, availableFoods = []) => {
+  if (!availableFoods || availableFoods.length === 0) return [];
+
+  const lower = (message || '').toLowerCase();
+  const goal = (context?.goal || '').toLowerCase();
+
+  const wantsHighProtein = /protein|muscle|gym|bulk|lean|strength/i.test(lower) || goal === 'gain_muscle';
+  const wantsLowCalorie = /weight|loss|fat|deficit|calorie|light|diet|slim/i.test(lower) || goal === 'lose_weight';
+  const wantsDiabetic = /diabet|sugar|blood|glycemic|low\s*gi|insulin/i.test(lower) || goal === 'manage_diabetes';
+  const wantsBreakfast = /breakfast|morning|idli|dosa|oats|omelette|pongal/i.test(lower);
+  const wantsDinner = /dinner|night|evening/i.test(lower);
+  const wantsSalad = /salad|bowl|sprouts/i.test(lower);
+  const wantsPureVeg = /pure\s*veg|vegetarian|without\s*meat|no\s*chicken/i.test(lower);
+  const wantsNonVeg = /non\s*veg|chicken|fish|meat|poultry/i.test(lower);
+
+  const words = lower.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter((w) => w.length > 2);
+
+  const scored = availableFoods.map((f) => {
+    let score = 55;
+    let reason = 'Balanced nutritional homemade meal';
+    const nameLower = (f.name || '').toLowerCase();
+    const tagsLower = (f.tags || []).map((t) => t.toLowerCase()).join(' ');
+    const descLower = (f.description || '').toLowerCase();
+
+    for (const w of words) {
+      if (nameLower.includes(w)) score += 35;
+      else if (tagsLower.includes(w)) score += 20;
+      else if (descLower.includes(w)) score += 10;
+    }
+
+    if (wantsHighProtein) {
+      const p = f.nutrition?.protein || 0;
+      if (p >= 30) {
+        score += 45;
+        reason = `High Protein Powerhouse (${p}g protein) for muscle synthesis`;
+      } else if (p >= 18) {
+        score += 30;
+        reason = `Rich in Lean Protein (${p}g protein) & clean calories`;
+      }
+    }
+
+    if (wantsLowCalorie) {
+      const cal = f.nutrition?.calories || 400;
+      if (cal <= 250) {
+        score += 40;
+        reason = `Ultra Low Calorie (${cal} kcal) to sustain easy fat loss`;
+      } else if (cal <= 350) {
+        score += 25;
+        reason = `Calorie Deficit Friendly (${cal} kcal) with ${f.nutrition?.protein || 10}g protein`;
+      }
+    }
+
+    if (wantsDiabetic) {
+      if (f.suitableFor?.includes('diabetic_friendly') || tagsLower.includes('diabetic') || tagsLower.includes('fiber') || nameLower.includes('oats') || nameLower.includes('quinoa')) {
+        score += 45;
+        reason = 'Low GI & high soluble fiber to prevent glucose spikes';
+      }
+    }
+
+    if (wantsBreakfast) {
+      if (tagsLower.includes('breakfast') || f.suitableFor?.includes('heart_healthy') || nameLower.includes('idli') || nameLower.includes('upma') || nameLower.includes('dosa') || nameLower.includes('omelette')) {
+        score += 40;
+        reason = 'Wholesome morning energizing breakfast with steady macros';
+      }
+    }
+
+    if (wantsDinner) {
+      if ((f.nutrition?.calories || 400) <= 380) {
+        score += 30;
+        reason = 'Light & easy-to-digest dinner meal for evening satiety';
+      }
+    }
+
+    if (wantsSalad) {
+      if (tagsLower.includes('salad') || tagsLower.includes('bowl') || nameLower.includes('salad') || nameLower.includes('bowl')) {
+        score += 35;
+        reason = 'Fresh antioxidant-rich nutrient bowl with clean herbs';
+      }
+    }
+
+    if (wantsPureVeg) {
+      if (f.isVeg) score += 25;
+      else score -= 90;
+    } else if (wantsNonVeg) {
+      if (!f.isVeg) score += 30;
+      else score -= 20;
+    }
+
+    score += Math.round((f.rating || 4.5) * 4);
+
+    return {
+      _id: f._id,
+      name: f.name,
+      images: f.images,
+      price: f.price,
+      discountPrice: f.discountPrice,
+      isVeg: f.isVeg,
+      rating: f.rating,
+      totalReviews: f.totalReviews,
+      nutrition: f.nutrition,
+      tags: f.tags,
+      recommendReason: reason,
+      matchScore: Math.min(99, Math.max(65, score)),
+    };
+  });
+
+  scored.sort((a, b) => b.matchScore - a.matchScore);
+  return scored.slice(0, 4);
+};
+
+const chatWithAssistant = async (message, context = {}, availableFoods = []) => {
+  const matchedFoods = matchFoodsForQuery(message, context, availableFoods);
+  const dishNames = (availableFoods || []).slice(0, 15).map((f) => `${f.name} (${f.nutrition?.calories} kcal, ${f.nutrition?.protein}g protein)`).join(', ');
+
+  const systemPrompt = `${buildNutritionSystemPrompt()}
+Our verified local home kitchen menu includes: ${dishNames}.
+Whenever relevant, recommend these actual freshly cooked NutriChef dishes by exact name so the customer can order them directly!`;
+
   const contextStr = Object.keys(context || {}).length ? JSON.stringify(context) : 'None';
   const userContent = `User Context / Health Profile: ${contextStr}\n\nUser Question: ${message}\n\nPlease respond directly to the user in a friendly, encouraging, and clear nutrition consultation format:`;
 
@@ -171,7 +288,12 @@ const chatWithAssistant = async (message, context = {}) => {
       { role: 'user', content: userContent },
     ]);
     if (groqRes?.text) {
-      return { reply: groqRes.text, provider: 'groq', model: groqRes.model };
+      return { 
+        reply: groqRes.text, 
+        recommendedFoods: matchedFoods, 
+        provider: 'groq', 
+        model: groqRes.model 
+      };
     }
   }
 
@@ -180,7 +302,12 @@ const chatWithAssistant = async (message, context = {}) => {
     const geminiPrompt = `${systemPrompt}\n\n${userContent}`;
     const geminiRes = await executeGeminiGeneration(geminiPrompt);
     if (geminiRes?.text) {
-      return { reply: geminiRes.text, provider: 'gemini', model: geminiRes.model };
+      return { 
+        reply: geminiRes.text, 
+        recommendedFoods: matchedFoods, 
+        provider: 'gemini', 
+        model: geminiRes.model 
+      };
     }
   }
 
@@ -188,17 +315,20 @@ const chatWithAssistant = async (message, context = {}) => {
   const lower = (message || '').toLowerCase();
   let fallbackReply = '';
   if (lower.includes('weight') || lower.includes('fat') || lower.includes('deficit')) {
-    fallbackReply = "For sustainable weight loss, prioritize high-fiber and lean-protein meals that keep you full while maintaining a moderate 300-500 kcal deficit. Dishes like our Berry Overnight Oats (280 kcal • 10g protein) or Fresh Mediterranean Quinoa Salad (320 kcal • 12g protein) are ideal choices to avoid glucose spikes!";
+    fallbackReply = "For sustainable weight loss, prioritize high-fiber and lean-protein meals that keep you full while maintaining a moderate 300-500 kcal deficit. Dishes like our Sprouts and Corn Salad (190 kcal • 11g protein) or Chickpea Protein Bowl (380 kcal • 18g protein) are ideal choices to avoid glucose spikes!";
   } else if (lower.includes('protein') || lower.includes('muscle') || lower.includes('gym')) {
-    fallbackReply = "To maximize muscle synthesis and satiety, aim for 1.6g to 2.0g of protein per kg of body weight daily. Top recommendations from our certified home kitchens include Grilled Herb Chicken Bowl (28g protein • 420 kcal) and Paneer Tikka Sprout Salad (18g protein • 310 kcal).";
+    fallbackReply = "To maximize muscle synthesis and satiety, aim for 1.6g to 2.0g of protein per kg of body weight daily. Top recommendations from our certified home kitchens include Chicken Tikka Bowl (38g protein • 430 kcal), Grilled Chicken Breast (42g protein • 380 kcal), and Paneer Quinoa Bowl (26g protein • 420 kcal).";
   } else if (lower.includes('diabet') || lower.includes('sugar')) {
-    fallbackReply = "For optimal blood sugar management, combine complex carbohydrates with soluble fiber and healthy fats to slow down digestion. Our chef-crafted Multigrain Millet Bowls and Low-GI Veggie Stir-Fries are specifically prepared with minimal cold-pressed oil and zero refined sugars.";
+    fallbackReply = "For optimal blood sugar management, combine complex carbohydrates with soluble fiber and healthy fats to slow down digestion. Our chef-crafted Vegetable Oats Upma, Multigrain Chapati, and Sprouts Protein Bowls are specifically prepared with zero refined sugars and cold-pressed oils.";
+  } else if (lower.includes('breakfast') || lower.includes('morning')) {
+    fallbackReply = "Start your morning with slow-burning complex carbs and clean protein! I recommend our Mini Idli with Sambar (240 kcal • 9g protein) or Vegetable Oats Upma for steady all-morning stamina without sluggishness.";
   } else {
-    fallbackReply = "Welcome to NutriChef AI! I can help you calculate your daily calorie targets, customize high-protein lunch & dinner plans, or recommend dishes from local home kitchens tailored to your fitness goals. What would you like to plan today?";
+    fallbackReply = "Welcome to NutriChef AI! I can help you calculate your daily calorie targets, customize high-protein lunch & dinner plans, or recommend dishes from local home kitchens tailored to your fitness goals. What would you like to eat today?";
   }
 
   return {
     reply: fallbackReply,
+    recommendedFoods: matchedFoods,
     provider: 'rule-based',
     mock: true,
   };

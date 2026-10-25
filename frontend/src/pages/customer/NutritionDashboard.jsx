@@ -142,7 +142,8 @@ const NutritionDashboard = () => {
   const [quickMealCals, setQuickMealCals] = useState(320);
 
   // 3. AI Food Recommendations based on computed metrics & goal
-  const recommendedFoods = useMemo(() => {
+  // 3. AI Food Recommendations based on computed metrics & goal
+  const defaultRecommendedFoods = useMemo(() => {
     return sampleFoods.map((f) => {
       let matchScore = 80;
       let reason = 'Balanced nutritional profile';
@@ -181,11 +182,120 @@ const NutritionDashboard = () => {
     }).sort((a, b) => b.matchScore - a.matchScore);
   }, [profile.goal]);
 
+  // Dynamic side recommendations state (adapts when user asks in chat)
+  const [customSideRecommendation, setCustomSideRecommendation] = useState(null);
+
+  const displayedSideFoods = useMemo(() => {
+    if (customSideRecommendation?.foods?.length) {
+      return customSideRecommendation.foods;
+    }
+    return defaultRecommendedFoods;
+  }, [customSideRecommendation, defaultRecommendedFoods]);
+
+  // Client matcher for immediate dynamic query matching
+  const matchClientFoods = (queryText) => {
+    const lower = (queryText || '').toLowerCase();
+    const wantsHighProtein = /protein|muscle|gym|bulk|lean|strength/i.test(lower) || profile.goal === 'gain_muscle';
+    const wantsLowCalorie = /weight|loss|fat|deficit|calorie|light|diet|slim/i.test(lower) || profile.goal === 'lose_weight';
+    const wantsDiabetic = /diabet|sugar|blood|glycemic|low\s*gi|insulin/i.test(lower) || profile.goal === 'manage_diabetes';
+    const wantsBreakfast = /breakfast|morning|idli|dosa|oats|omelette|pongal/i.test(lower);
+    const wantsDinner = /dinner|night|evening/i.test(lower);
+    const wantsSalad = /salad|bowl|sprouts/i.test(lower);
+    const wantsPureVeg = /pure\s*veg|vegetarian|without\s*meat|no\s*chicken/i.test(lower);
+    const wantsNonVeg = /non\s*veg|chicken|fish|meat|poultry/i.test(lower);
+
+    const words = lower.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter((w) => w.length > 2);
+
+    const scored = sampleFoods.map((f) => {
+      let score = 55;
+      let reason = 'Balanced nutritional homemade meal';
+      const nameLower = (f.name || '').toLowerCase();
+      const tagsLower = (f.dietaryTags || f.tags || []).map((t) => t.toLowerCase()).join(' ');
+      const descLower = (f.description || '').toLowerCase();
+
+      for (const w of words) {
+        if (nameLower.includes(w)) score += 35;
+        else if (tagsLower.includes(w)) score += 20;
+        else if (descLower.includes(w)) score += 10;
+      }
+
+      if (wantsHighProtein) {
+        const p = f.nutrition?.protein || 0;
+        if (p >= 30) {
+          score += 45;
+          reason = `High Protein Powerhouse (${p}g protein) for muscle recovery`;
+        } else if (p >= 18) {
+          score += 30;
+          reason = `Rich in Lean Protein (${p}g protein) & clean calories`;
+        }
+      }
+
+      if (wantsLowCalorie) {
+        const cal = f.nutrition?.calories || 400;
+        if (cal <= 250) {
+          score += 40;
+          reason = `Ultra Low Calorie (${cal} kcal) to sustain fat loss deficit`;
+        } else if (cal <= 350) {
+          score += 25;
+          reason = `Calorie Deficit Friendly (${cal} kcal) with ${f.nutrition?.protein || 10}g protein`;
+        }
+      }
+
+      if (wantsDiabetic) {
+        if (f.suitableFor?.includes('diabetic_friendly') || tagsLower.includes('diabetic') || nameLower.includes('oats') || nameLower.includes('quinoa') || tagsLower.includes('fiber')) {
+          score += 45;
+          reason = 'Low GI & high soluble fiber to prevent glucose spikes';
+        }
+      }
+
+      if (wantsBreakfast) {
+        if (f.category === 'Breakfast' || tagsLower.includes('breakfast') || nameLower.includes('idli') || nameLower.includes('upma') || nameLower.includes('dosa') || nameLower.includes('omelette')) {
+          score += 40;
+          reason = 'Wholesome morning energizing breakfast with steady macros';
+        }
+      }
+
+      if (wantsDinner) {
+        if ((f.nutrition?.calories || 400) <= 380) {
+          score += 30;
+          reason = 'Light & easy-to-digest dinner meal for evening satiety';
+        }
+      }
+
+      if (wantsSalad) {
+        if (f.category === 'Salad & Bowls' || tagsLower.includes('salad') || tagsLower.includes('bowl') || nameLower.includes('salad') || nameLower.includes('bowl')) {
+          score += 35;
+          reason = 'Antioxidant & micronutrient-rich fresh garden bowl';
+        }
+      }
+
+      if (wantsPureVeg) {
+        if (f.isVeg) score += 25;
+        else score -= 90;
+      } else if (wantsNonVeg) {
+        if (!f.isVeg) score += 30;
+        else score -= 20;
+      }
+
+      score += Math.round((f.rating || 4.5) * 4);
+
+      return {
+        ...f,
+        matchScore: Math.min(99, Math.max(65, score)),
+        recommendReason: reason,
+      };
+    });
+
+    scored.sort((a, b) => b.matchScore - a.matchScore);
+    return scored;
+  };
+
   // 4. AI Chat Log
   const [chatLog, setChatLog] = useState([
     {
       role: 'assistant',
-      text: `Hello! 👋 I am your NutriChef AI Nutritionist.\nBased on your physical measurements (${profile.weightKg}kg, ${profile.heightCm}cm, BMI ${computedMetrics.bmi}), your daily target is ${computedMetrics.targetCalories} kcal with ${computedMetrics.proteinGrams}g Protein.\nHow can I help fuel your healthy goals today?`,
+      text: `Hello! 👋 I am your NutriChef AI Nutritionist.\nBased on your physical measurements (${profile.weightKg}kg, ${profile.heightCm}cm, BMI ${computedMetrics.bmi}), your daily target is ${computedMetrics.targetCalories} kcal with ${computedMetrics.proteinGrams}g Protein.\n\nHere are handpicked chef-curated meals for your goals. What would you like to eat or plan today?`,
+      foods: defaultRecommendedFoods.slice(0, 2),
     },
   ]);
   const [chatInput, setChatInput] = useState('');
@@ -263,11 +373,41 @@ const NutritionDashboard = () => {
     setChatInput('');
     setIsAiTyping(true);
 
+    const clientMatches = matchClientFoods(text);
+    const topFoods = clientMatches.slice(0, 4);
+
     try {
       // Call backend AI chat if available
       const { data } = await aiApi.chat(text);
       if (data?.data?.reply) {
-        setChatLog((prev) => [...prev, { role: 'assistant', text: data.data.reply }]);
+        const backendFoods = data.data.recommendedFoods;
+        const finalFoods = (backendFoods && backendFoods.length > 0)
+          ? backendFoods.map((bf) => {
+              const matchedSample = sampleFoods.find((sf) => sf.name === bf.name || sf._id === bf._id);
+              return {
+                ...bf,
+                images: bf.images?.length ? bf.images : matchedSample?.images,
+                price: bf.price || matchedSample?.price || 199,
+                discountPrice: bf.discountPrice || matchedSample?.discountPrice || bf.price,
+              };
+            })
+          : topFoods;
+
+        setChatLog((prev) => [
+          ...prev, 
+          { 
+            role: 'assistant', 
+            text: data.data.reply, 
+            foods: finalFoods 
+          }
+        ]);
+
+        // Dynamically update side recommendations with the matching foods
+        setCustomSideRecommendation({
+          query: text,
+          foods: finalFoods,
+        });
+
         setIsAiTyping(false);
         return;
       }
@@ -280,18 +420,34 @@ const NutritionDashboard = () => {
       const lower = text.toLowerCase();
 
       if (lower.includes('weight') || lower.includes('fat') || lower.includes('diet') || lower.includes('loss')) {
-        reply = `For your weight loss goal (${profile.weightKg}kg → target ${computedMetrics.targetCalories} kcal), focus on calorie-deficit meals high in fiber!\n\n⭐ Top Pick: Berry Oats Bowl (280 kcal, 10g protein) or Quinoa Salad (320 kcal). They keep you full for 4+ hours and avoid glucose spikes!`;
+        reply = `For your weight loss goal (${profile.weightKg}kg → target ${computedMetrics.targetCalories} kcal), focus on calorie-deficit meals high in fiber!\n\n⭐ Top Picks: Sprouts and Corn Salad (190 kcal • 11g protein), Chickpea Protein Bowl (380 kcal • 18g protein), and Steamed Vegetable Momos (180 kcal). They keep you full for 4+ hours and avoid glucose spikes!`;
       } else if (lower.includes('protein') || lower.includes('muscle') || lower.includes('gym')) {
-        reply = `To hit your ${computedMetrics.proteinGrams}g daily protein target for muscle gain, I recommend:\n\n1. Grilled Chicken Bowl (28g protein • 420 kcal)\n2. Paneer Salad (18g protein • 310 kcal)\n3. Chicken Biryani (28g protein)\n\nBoth are freshly cooked in small hygienic batches with low oil!`;
+        reply = `To hit your ${computedMetrics.proteinGrams}g daily protein target for muscle gain, I recommend:\n\n1. Chicken Tikka Bowl (38g protein • 430 kcal)\n2. Grilled Chicken Breast (42g protein • 380 kcal)\n3. Paneer Quinoa Bowl (26g protein • 420 kcal)\n\nAll freshly cooked in small hygienic batches with low oil!`;
       } else if (lower.includes('diabet') || lower.includes('sugar') || lower.includes('blood')) {
-        reply = `For diabetic-safe eating, prioritize complex carbohydrates with high soluble fiber!\n\nI recommend Quinoa Delight (14g protein • 300 kcal) or Avocado Toast with multigrain seed bread. Both prevent insulin spikes and provide steady energy!`;
+        reply = `For diabetic-safe eating, prioritize complex carbohydrates with high soluble fiber!\n\nI recommend Vegetable Oats Upma, Multigrain Chapati with Vegetable Curry, or Chickpea Protein Bowl. Both prevent insulin spikes and provide steady energy!`;
       } else if (lower.includes('dinner') || lower.includes('night')) {
-        reply = `For a light healthy dinner under 400 kcal, try the Paneer Salad (310 kcal, 18g protein) or Quinoa Delight (300 kcal). Eating lighter in the evening boosts fat burning while you sleep!`;
+        reply = `For a light healthy dinner under 400 kcal, try the Paneer Quinoa Bowl (420 kcal • 26g protein) or Sprouts and Corn Salad (190 kcal). Eating lighter in the evening boosts fat burning while you sleep!`;
+      } else if (lower.includes('breakfast') || lower.includes('morning')) {
+        reply = `Start your morning with slow-burning complex carbs and clean protein! I recommend our Mini Idli with Sambar (240 kcal • 9g protein) or Vegetable Oats Upma for steady all-morning stamina!`;
       } else {
-        reply = `Great question! With your current BMR of ${computedMetrics.bmr} kcal and daily TDEE of ${computedMetrics.tdee} kcal, you have ${remainingCalories} kcal left today.\n\nWould you like me to recommend a high-protein dinner or a low-carb snack from our local home chefs?`;
+        reply = `Great question! With your current BMR of ${computedMetrics.bmr} kcal and daily TDEE of ${computedMetrics.tdee} kcal, you have ${remainingCalories} kcal left today.\n\nHere are top chef-prepared dishes tailored directly to what you asked:`;
       }
 
-      setChatLog((prev) => [...prev, { role: 'assistant', text: reply }]);
+      setChatLog((prev) => [
+        ...prev, 
+        { 
+          role: 'assistant', 
+          text: reply, 
+          foods: topFoods 
+        }
+      ]);
+
+      // Dynamically update side recommendation section
+      setCustomSideRecommendation({
+        query: text,
+        foods: topFoods,
+      });
+
       setIsAiTyping(false);
     }, 600);
   };
@@ -473,39 +629,61 @@ const NutritionDashboard = () => {
                     </div>
                   </div>
 
-                  {/* PERSONALIZED FOOD RECOMMENDATIONS SECTION */}
+                  {/* PERSONALIZED FOOD RECOMMENDATIONS SECTION (DYNAMIC) */}
                   <div className="space-y-4 pt-2">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                          <span>AI Recommended Dishes For You</span>
+                          <span>{customSideRecommendation ? '✨ AI Recommended Dishes (Live Chat Match)' : 'AI Recommended Dishes For You'}</span>
                           <span className="text-[10px] font-black uppercase bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                            {profile.goal.replace('_', ' ')}
+                            {customSideRecommendation ? 'CHAT ADAPTED' : profile.goal.replace('_', ' ')}
                           </span>
                         </h3>
                         <p className="text-xs text-slate-500 font-medium">
-                          Handpicked meals tailored to your {profile.weightKg}kg target and {computedMetrics.targetCalories} kcal budget
+                          {customSideRecommendation
+                            ? `Dynamically updated based on: "${customSideRecommendation.query}"`
+                            : `Handpicked meals tailored to your ${profile.weightKg}kg target and ${computedMetrics.targetCalories} kcal budget`}
                         </p>
                       </div>
+
+                      {customSideRecommendation && (
+                        <button
+                          type="button"
+                          onClick={() => setCustomSideRecommendation(null)}
+                          className="text-xs font-bold text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-xl border border-purple-200 transition active:scale-95 flex items-center gap-1.5 shrink-0"
+                          title="Reset to your profile goals"
+                        >
+                          <RefreshCw size={12} />
+                          <span>Reset to My Goals</span>
+                        </button>
+                      )}
                     </div>
 
                     {/* Recommendations Cards Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {recommendedFoods.slice(0, 4).map((f) => (
+                      {displayedSideFoods.slice(0, 4).map((f) => (
                         <div
                           key={f._id}
-                          className="bg-white rounded-2xl border border-slate-100 p-3 shadow-2xs hover:shadow-md transition space-y-2.5 group"
+                          onClick={() => navigate(`/food/${f._id}`)}
+                          className="bg-white rounded-2xl border border-slate-100 p-3 shadow-2xs hover:shadow-md transition space-y-2.5 group cursor-pointer"
                         >
                           <div className="flex gap-3 items-center">
                             <img
                               src={f.images?.[0] || '/food-images/grilled-chicken-breast-1.jpg'}
                               alt={f.name}
-                              className="w-16 h-16 rounded-xl object-cover shrink-0"
+                              className="w-16 h-16 rounded-xl object-cover shrink-0 group-hover:scale-105 transition duration-300"
                             />
                             <div className="min-w-0 flex-1">
-                              <h4 className="text-xs font-black text-slate-900 truncate group-hover:text-purple-700 transition">
-                                {f.name}
-                              </h4>
+                              <div className="flex items-center justify-between gap-1">
+                                <h4 className="text-xs font-black text-slate-900 truncate group-hover:text-purple-700 transition">
+                                  {f.name}
+                                </h4>
+                                {f.matchScore && (
+                                  <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md shrink-0">
+                                    {f.matchScore}%
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-[11px] text-slate-500 font-medium">
                                 {f.nutrition?.calories} kcal • {f.nutrition?.protein}g Protein
                               </p>
@@ -515,7 +693,10 @@ const NutritionDashboard = () => {
                             </div>
                             <button
                               type="button"
-                              onClick={() => handleAdd(f)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAdd(f);
+                              }}
                               className="w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-xs active:scale-90"
                               title="Add to Cart"
                             >
@@ -572,13 +753,89 @@ const NutritionDashboard = () => {
                     {chatLog.map((c, i) => (
                       <div
                         key={i}
-                        className={`text-xs rounded-2xl p-3.5 leading-relaxed max-w-[88%] ${
+                        className={`text-xs rounded-2xl p-3.5 leading-relaxed ${
                           c.role === 'user'
-                            ? 'bg-purple-600 text-white ml-auto shadow-xs rounded-br-xs'
-                            : 'bg-white text-slate-800 border border-slate-100 shadow-2xs rounded-bl-xs'
+                            ? 'bg-purple-600 text-white ml-auto shadow-xs rounded-br-xs max-w-[85%]'
+                            : 'bg-white text-slate-800 border border-slate-100 shadow-2xs rounded-bl-xs max-w-[95%] space-y-3'
                         }`}
                       >
-                        {renderFormattedText(c.text, c.role === 'user')}
+                        <div>{renderFormattedText(c.text, c.role === 'user')}</div>
+
+                        {/* Interactive Recommended Food Cards inside Chat */}
+                        {c.foods && c.foods.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-purple-100/90 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="flex items-center gap-1.5 text-[11px] font-black text-purple-900">
+                                <Sparkles size={13} className="text-purple-600 animate-pulse" />
+                                <span>Recommended Dishes ({c.foods.length})</span>
+                              </span>
+                              <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                                Tap to View & Order
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                              {c.foods.map((food) => (
+                                <div
+                                  key={food._id}
+                                  onClick={() => navigate(`/food/${food._id}`)}
+                                  className="bg-purple-50/40 hover:bg-white rounded-xl p-2.5 border border-purple-100/90 hover:border-purple-300 shadow-2xs hover:shadow-md transition cursor-pointer flex items-center justify-between gap-2.5 group"
+                                >
+                                  {/* Food thumbnail with veg badge */}
+                                  <div className="relative w-13 h-13 rounded-lg overflow-hidden shrink-0 bg-slate-100">
+                                    <img
+                                      src={food.images?.[0] || '/food-images/grilled-chicken-breast-1.jpg'}
+                                      alt={food.name}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                    />
+                                    <div className="absolute top-1 left-1 bg-white/95 backdrop-blur-xs p-0.5 rounded-xs shadow-2xs">
+                                      <span
+                                        className={`w-2 h-2 border rounded-xs flex items-center justify-center ${
+                                          food.isVeg ? 'border-emerald-600' : 'border-rose-600'
+                                        }`}
+                                      >
+                                        <span className={`w-1 h-1 rounded-full ${food.isVeg ? 'bg-emerald-600' : 'bg-rose-600'}`} />
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Food info */}
+                                  <div className="flex-1 min-w-0">
+                                    <h5 className="text-[11px] font-black text-slate-900 truncate group-hover:text-purple-700 transition">
+                                      {food.name}
+                                    </h5>
+                                    <p className="text-[10px] text-slate-500 font-semibold truncate">
+                                      {food.nutrition?.calories || 320} kcal • {food.nutrition?.protein || 12}g Prot
+                                    </p>
+                                    <div className="flex items-center justify-between mt-1">
+                                      <span className="text-xs font-black text-purple-800">
+                                        ₹{food.discountPrice || food.price}
+                                      </span>
+                                      {food.matchScore && (
+                                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-md">
+                                          {food.matchScore}% Match
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Quick Add Button */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleAdd(food);
+                                    }}
+                                    className="w-7 h-7 rounded-lg bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-xs active:scale-90 transition"
+                                    title="Add to Cart"
+                                  >
+                                    <Plus size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                     {isAiTyping && (
@@ -808,19 +1065,35 @@ const NutritionDashboard = () => {
                 </div>
               </div>
 
-              {/* 2.6 PERSONALIZED FOOD RECOMMENDATIONS (MOBILE) */}
+              {/* 2.6 PERSONALIZED FOOD RECOMMENDATIONS (MOBILE DYNAMIC) */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black text-slate-900">
-                    Recommended For Your Body
-                  </h3>
-                  <span className="text-[10px] font-bold text-purple-700">
-                    {profile.goal.replace('_', ' ')}
-                  </span>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900">
+                      {customSideRecommendation ? '✨ AI Recommended Dishes' : 'Recommended For Your Body'}
+                    </h3>
+                    <p className="text-[10px] text-slate-500 font-medium truncate max-w-[200px]">
+                      {customSideRecommendation ? `Matched: "${customSideRecommendation.query}"` : profile.goal.replace('_', ' ')}
+                    </p>
+                  </div>
+
+                  {customSideRecommendation ? (
+                    <button
+                      type="button"
+                      onClick={() => setCustomSideRecommendation(null)}
+                      className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-1 rounded-lg border border-purple-200"
+                    >
+                      Reset
+                    </button>
+                  ) : (
+                    <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                      {profile.goal.replace('_', ' ')}
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-3">
-                  {recommendedFoods.slice(0, 3).map((f) => (
+                  {displayedSideFoods.slice(0, 4).map((f) => (
                     <div
                       key={f._id}
                       onClick={() => navigate(`/food/${f._id}`)}
@@ -832,9 +1105,16 @@ const NutritionDashboard = () => {
                         className="w-16 h-16 rounded-xl object-cover shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-black text-slate-900 truncate">
-                          {f.name}
-                        </h4>
+                        <div className="flex items-center justify-between gap-1">
+                          <h4 className="text-xs font-black text-slate-900 truncate">
+                            {f.name}
+                          </h4>
+                          {f.matchScore && (
+                            <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-md shrink-0">
+                              {f.matchScore}%
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[11px] text-slate-500 font-medium">
                           {f.nutrition?.calories} kcal • {f.nutrition?.protein}g Protein
                         </p>
@@ -853,6 +1133,7 @@ const NutritionDashboard = () => {
                           handleAdd(f);
                         }}
                         className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm active:scale-90"
+                        title="Add to Cart"
                       >
                         <Plus size={16} />
                       </button>
@@ -902,13 +1183,64 @@ const NutritionDashboard = () => {
                 {chatLog.map((c, i) => (
                   <div
                     key={i}
-                    className={`text-xs rounded-2xl p-3 leading-relaxed max-w-[88%] ${
+                    className={`text-xs rounded-2xl p-3 leading-relaxed ${
                       c.role === 'user'
-                        ? 'bg-purple-600 text-white ml-auto shadow-xs rounded-br-xs'
-                        : 'bg-white text-slate-800 border border-slate-100 shadow-2xs rounded-bl-xs'
+                        ? 'bg-purple-600 text-white ml-auto shadow-xs rounded-br-xs max-w-[85%]'
+                        : 'bg-white text-slate-800 border border-slate-100 shadow-2xs rounded-bl-xs max-w-[95%] space-y-2.5'
                     }`}
                   >
-                    {renderFormattedText(c.text, c.role === 'user')}
+                    <div>{renderFormattedText(c.text, c.role === 'user')}</div>
+
+                    {/* Mobile Food Cards directly inside chat bubble */}
+                    {c.foods && c.foods.length > 0 && (
+                      <div className="mt-2.5 pt-2.5 border-t border-purple-100 space-y-2">
+                        <div className="flex items-center justify-between text-[10px] font-bold text-purple-900">
+                          <span className="flex items-center gap-1">
+                            <Sparkles size={11} className="text-purple-600 animate-pulse" />
+                            <span>Recommended Meals</span>
+                          </span>
+                          <span className="text-purple-600">Tap to order</span>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          {c.foods.map((food) => (
+                            <div
+                              key={food._id}
+                              onClick={() => navigate(`/food/${food._id}`)}
+                              className="bg-purple-50/50 hover:bg-white rounded-xl p-2 border border-purple-100/90 flex items-center justify-between gap-2 cursor-pointer group"
+                            >
+                              <img
+                                src={food.images?.[0] || '/food-images/grilled-chicken-breast-1.jpg'}
+                                alt={food.name}
+                                className="w-12 h-12 rounded-lg object-cover shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <h5 className="text-[11px] font-black text-slate-900 truncate">
+                                  {food.name}
+                                </h5>
+                                <p className="text-[10px] text-slate-500 font-medium">
+                                  {food.nutrition?.calories} kcal • {food.nutrition?.protein}g Prot
+                                </p>
+                                <span className="text-xs font-black text-purple-800">
+                                  ₹{food.discountPrice || food.price}
+                                </span>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAdd(food);
+                                }}
+                                className="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs active:scale-90"
+                              >
+                                <Plus size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {isAiTyping && (

@@ -38,7 +38,8 @@ const chat = asyncHandler(async (req, res) => {
   const { message } = req.body;
   if (!message) return error(res, 'Message is required');
 
-  const result = await aiService.chatWithAssistant(message, req.user?.healthProfile || {});
+  const availableFoods = await Food.find({ isAvailable: true }).limit(50).lean();
+  const result = await aiService.chatWithAssistant(message, req.user?.healthProfile || {}, availableFoods);
 
   if (req.user?._id) {
     await AIHistory.create({
