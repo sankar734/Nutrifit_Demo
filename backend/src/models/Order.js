@@ -67,6 +67,10 @@ const orderSchema = new mongoose.Schema(
     deliverySlot: { start: Date, end: Date },
     isSubscriptionOrder: { type: Boolean, default: false },
     cancellationReason: String,
+    refundAmount: { type: Number, default: 0 },
+    refundPercentage: { type: Number, default: 0 },
+    cancellationFee: { type: Number, default: 0 },
+    cancelledAt: Date,
   },
   { timestamps: true }
 );

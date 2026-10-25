@@ -7,6 +7,7 @@ const {
   getOrderById,
   getChefOrders,
   updateOrderStatus,
+  cancelOrder,
 } = require('../controllers/orderController');
 
 router.use(protect);
@@ -15,5 +16,6 @@ router.get('/my', getMyOrders);
 router.get('/chef', authorize('chef'), getChefOrders);
 router.get('/:id', getOrderById);
 router.put('/:id/status', authorize('chef', 'delivery', 'admin', 'superadmin'), updateOrderStatus);
+router.post('/:id/cancel', cancelOrder);
 
 module.exports = router;

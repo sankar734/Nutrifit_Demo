@@ -10,10 +10,14 @@ import {
   ShieldCheck, 
   ShoppingBag,
   Sparkles,
-  MapPin
+  MapPin,
+  AlertTriangle,
+  XCircle,
+  Wallet
 } from 'lucide-react';
 import MobileLayout from '../../components/customer/MobileLayout';
 import DesktopSidebar from '../../components/customer/DesktopSidebar';
+import CancelOrderModal from '../../components/customer/CancelOrderModal';
 import Toast from '../../components/customer/Toast';
 import { orderApi, cartApi } from '../../services/api';
 import { useCart } from '../../context/CartContext';
@@ -35,6 +39,7 @@ const statusStyle = {
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState('All');
+  const [orderToCancel, setOrderToCancel] = useState(null);
   const { isMobileView } = useDeviceMode();
   const { refresh, addToCart } = useCart() || {};
   const { message, showToast } = useToast();
@@ -46,6 +51,13 @@ const MyOrders = () => {
       .then(({ data }) => setOrders(data.data.orders))
       .catch(() => setOrders([]));
   }, []);
+
+  const handleCancelSuccess = (updatedOrder, msg) => {
+    setOrders((prev) =>
+      prev.map((o) => (o._id === updatedOrder._id ? updatedOrder : o))
+    );
+    showToast(msg || `Order #${updatedOrder.orderNumber} cancelled successfully.`);
+  };
 
   const reorder = async (order) => {
     try {
@@ -81,6 +93,16 @@ const MyOrders = () => {
   return (
     <MobileLayout fullWidth={!isMobileView}>
       <Toast message={message} />
+
+      {/* Cancellation Modal */}
+      {orderToCancel && (
+        <CancelOrderModal
+          order={orderToCancel}
+          isOpen={!!orderToCancel}
+          onClose={() => setOrderToCancel(null)}
+          onSuccess={handleCancelSuccess}
+        />
+      )}
 
       {!isMobileView ? (
         /* ========================================================================= */
@@ -152,75 +174,121 @@ const MyOrders = () => {
               {/* 1.3 ORDERS GRID */}
               {filteredOrders.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {filteredOrders.map((o) => (
-                    <div
-                      key={o._id}
-                      className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs hover:shadow-md transition space-y-4 flex flex-col justify-between"
-                    >
-                      <div>
-                        {/* Header */}
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                          <div>
-                            <span className="text-xs font-black text-purple-700">{o.orderNumber}</span>
-                            <p className="text-[11px] text-slate-400 mt-0.5">
-                              {new Date(o.createdAt || Date.now()).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                  {filteredOrders.map((o) => {
+                    const isCancellable = ['placed', 'accepted', 'preparing', 'ready'].includes(o.status);
+                    const isPreCooking = ['placed', 'accepted'].includes(o.status);
+                    const isCancelled = ['cancelled', 'rejected'].includes(o.status);
+
+                    return (
+                      <div
+                        key={o._id}
+                        className="bg-white rounded-3xl p-5 border border-slate-100 shadow-xs hover:shadow-md transition space-y-4 flex flex-col justify-between"
+                      >
+                        <div>
+                          {/* Header */}
+                          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div>
+                              <span className="text-xs font-black text-purple-700">{o.orderNumber}</span>
+                              <p className="text-[11px] text-slate-400 mt-0.5">
+                                {new Date(o.createdAt || Date.now()).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </p>
+                            </div>
+                            <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border ${statusStyle[o.status] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                              {o.status.replace('_', ' ')}
+                            </span>
+                          </div>
+
+                          {/* Chef Kitchen */}
+                          <div className="py-2.5">
+                            <h4 className="text-sm font-black text-slate-900">
+                              {o.chef?.kitchenName || 'Paradise Homemade Kitchen'}
+                            </h4>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {o.items?.length || 1} {o.items?.length === 1 ? 'healthy item' : 'healthy items'} · Total: <span className="font-black text-slate-900">₹{o.totalAmount}</span>
                             </p>
                           </div>
-                          <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border ${statusStyle[o.status] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
-                            {o.status.replace('_', ' ')}
-                          </span>
-                        </div>
 
-                        {/* Chef Kitchen */}
-                        <div className="py-2.5">
-                          <h4 className="text-sm font-black text-slate-900">
-                            {o.chef?.kitchenName || 'Paradise Homemade Kitchen'}
-                          </h4>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {o.items?.length || 1} {o.items?.length === 1 ? 'healthy item' : 'healthy items'} · Total: <span className="font-black text-slate-900">₹{o.totalAmount}</span>
-                          </p>
-                        </div>
+                          {/* Items preview */}
+                          <div className="bg-slate-50/70 rounded-2xl p-3 space-y-1 text-xs">
+                            {o.items?.map((it, idx) => (
+                              <div key={idx} className="flex justify-between text-slate-600">
+                                <span>{it.quantity} × {it.name || 'Homemade Bowl'}</span>
+                                <span className="font-bold text-slate-800">₹{(it.price || 180) * (it.quantity || 1)}</span>
+                              </div>
+                            ))}
+                          </div>
 
-                        {/* Items preview */}
-                        <div className="bg-slate-50/70 rounded-2xl p-3 space-y-1 text-xs">
-                          {o.items?.map((it, idx) => (
-                            <div key={idx} className="flex justify-between text-slate-600">
-                              <span>{it.quantity} × {it.name || 'Homemade Bowl'}</span>
-                              <span className="font-bold text-slate-800">₹{(it.price || 180) * (it.quantity || 1)}</span>
+                          {/* Refund details badge if cancelled */}
+                          {isCancelled && (
+                            <div className="mt-3 bg-rose-50/70 border border-rose-100 rounded-2xl p-2.5 flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-1.5 text-rose-700 font-bold">
+                                <Wallet size={13} />
+                                <span>Refunded: <strong>₹{o.refundAmount || o.totalAmount}</strong></span>
+                              </div>
+                              <span className="text-[10px] font-black uppercase text-rose-700 bg-white px-2 py-0.5 rounded-full border border-rose-200">
+                                {o.refundPercentage || 100}% Wallet Credit
+                              </span>
                             </div>
-                          ))}
+                          )}
+
+                          {/* Policy hint for active cancellable orders */}
+                          {isCancellable && (
+                            <div className="mt-2.5">
+                              {isPreCooking ? (
+                                <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+                                  <CheckCircle2 size={11} />
+                                  <span>100% full refund available before cooking</span>
+                                </p>
+                              ) : (
+                                <p className="text-[10px] font-bold text-amber-600 flex items-center gap-1">
+                                  <AlertTriangle size={11} />
+                                  <span>Chef is preparing · 50% refund policy applies</span>
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      </div>
 
-                      {/* Action buttons */}
-                      <div className="pt-2 flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/order/${o._id}`)}
-                          className="flex-1 py-2.5 px-4 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center gap-1 transition"
-                        >
-                          <span>Track Live Order</span>
-                          <ChevronRight size={14} />
-                        </button>
-
-                        {o.status === 'delivered' && (
+                        {/* Action buttons */}
+                        <div className="pt-2 flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => reorder(o)}
-                            className="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1 transition shadow-xs"
+                            onClick={() => navigate(`/order/${o._id}`)}
+                            className="flex-1 py-2.5 px-4 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center gap-1 transition"
                           >
-                            <RotateCcw size={13} />
-                            <span>Reorder</span>
+                            <span>Track Live Order</span>
+                            <ChevronRight size={14} />
                           </button>
-                        )}
+
+                          {isCancellable && (
+                            <button
+                              type="button"
+                              onClick={() => setOrderToCancel(o)}
+                              className="py-2.5 px-3 rounded-xl bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-rose-200 font-bold text-xs flex items-center justify-center gap-1 transition active:scale-95"
+                            >
+                              <span>Cancel</span>
+                            </button>
+                          )}
+
+                          {o.status === 'delivered' && (
+                            <button
+                              type="button"
+                              onClick={() => reorder(o)}
+                              className="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1 transition shadow-xs"
+                            >
+                              <RotateCcw size={13} />
+                              <span>Reorder</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 space-y-3">
@@ -307,51 +375,89 @@ const MyOrders = () => {
 
           {/* 2.4 MOBILE ORDERS LIST */}
           <div className="space-y-3 pt-1">
-            {filteredOrders.map((o) => (
-              <div
-                key={o._id}
-                className="bg-white rounded-3xl p-4 border border-slate-100 shadow-xs space-y-3"
-              >
-                <div className="flex items-center justify-between">
+            {filteredOrders.map((o) => {
+              const isCancellable = ['placed', 'accepted', 'preparing', 'ready'].includes(o.status);
+              const isPreCooking = ['placed', 'accepted'].includes(o.status);
+              const isCancelled = ['cancelled', 'rejected'].includes(o.status);
+
+              return (
+                <div
+                  key={o._id}
+                  className="bg-white rounded-3xl p-4 border border-slate-100 shadow-xs space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-black text-purple-700">{o.orderNumber}</span>
+                      <p className="text-[10px] text-slate-400">
+                        {new Date(o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </p>
+                    </div>
+                    <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${statusStyle[o.status] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                      {o.status.replace('_', ' ')}
+                    </span>
+                  </div>
+
                   <div>
-                    <span className="text-xs font-black text-purple-700">{o.orderNumber}</span>
-                    <p className="text-[10px] text-slate-400">
-                      {new Date(o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    <h4 className="text-xs font-black text-slate-900">{o.chef?.kitchenName || 'Home Kitchen'}</h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {o.items?.length || 1} items · Total: <span className="font-extrabold text-slate-900">₹{o.totalAmount}</span>
                     </p>
                   </div>
-                  <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${statusStyle[o.status] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
-                    {o.status.replace('_', ' ')}
-                  </span>
-                </div>
 
-                <div>
-                  <h4 className="text-xs font-black text-slate-900">{o.chef?.kitchenName || 'Home Kitchen'}</h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {o.items?.length || 1} items · Total: <span className="font-extrabold text-slate-900">₹{o.totalAmount}</span>
-                  </p>
-                </div>
+                  {/* Refund info badge on mobile if cancelled */}
+                  {isCancelled && (
+                    <div className="bg-rose-50/70 border border-rose-100 rounded-xl p-2 flex items-center justify-between text-[11px]">
+                      <span className="font-bold text-rose-700">Refunded: ₹{o.refundAmount || o.totalAmount}</span>
+                      <span className="text-[9px] font-black uppercase text-rose-700 bg-white px-2 py-0.2 rounded-full border border-rose-200">
+                        {o.refundPercentage || 100}% Wallet
+                      </span>
+                    </div>
+                  )}
 
-                <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/order/${o._id}`)}
-                    className="flex-1 py-2 rounded-xl bg-purple-50 text-purple-700 font-bold text-xs"
-                  >
-                    Track Order
-                  </button>
-                  {o.status === 'delivered' && (
+                  {/* Cancellation policy hint on mobile */}
+                  {isCancellable && (
+                    <div className="text-[10px]">
+                      {isPreCooking ? (
+                        <span className="text-emerald-600 font-bold">● Free cancellation (100% full refund)</span>
+                      ) : (
+                        <span className="text-amber-600 font-bold">● Preparing: 50% refund on cancel</span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
                     <button
                       type="button"
-                      onClick={() => reorder(o)}
-                      className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center gap-1"
+                      onClick={() => navigate(`/order/${o._id}`)}
+                      className="flex-1 py-2 rounded-xl bg-purple-50 text-purple-700 font-bold text-xs"
                     >
-                      <RotateCcw size={12} />
-                      <span>Reorder</span>
+                      Track Order
                     </button>
-                  )}
+
+                    {isCancellable && (
+                      <button
+                        type="button"
+                        onClick={() => setOrderToCancel(o)}
+                        className="py-2 px-3 rounded-xl bg-white text-rose-600 border border-rose-200 font-bold text-xs active:scale-95"
+                      >
+                        Cancel
+                      </button>
+                    )}
+
+                    {o.status === 'delivered' && (
+                      <button
+                        type="button"
+                        onClick={() => reorder(o)}
+                        className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center gap-1"
+                      >
+                        <RotateCcw size={12} />
+                        <span>Reorder</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {filteredOrders.length === 0 && (
               <div className="bg-white rounded-3xl p-8 text-center border border-slate-100 space-y-2">

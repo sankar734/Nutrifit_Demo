@@ -81,8 +81,19 @@ const ChefDashboard = () => {
       load();
       setTimeout(() => setLiveNotice(''), 6000);
     };
+    const handleOrderCancelled = (payload) => {
+      setLiveNotice(`⚠️ Order #${payload.orderNumber || ''} was cancelled by customer.`);
+      load();
+      setTimeout(() => setLiveNotice(''), 8000);
+    };
     socket.on('new_order', handleNewOrder);
-    return () => socket.off('new_order', handleNewOrder);
+    socket.on('order_cancelled', handleOrderCancelled);
+    socket.on('order_status_update', load);
+    return () => {
+      socket.off('new_order', handleNewOrder);
+      socket.off('order_cancelled', handleOrderCancelled);
+      socket.off('order_status_update', load);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, dashboard?.chef?._id]);
 

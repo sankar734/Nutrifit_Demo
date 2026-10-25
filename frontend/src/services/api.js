@@ -67,6 +67,7 @@ export const orderApi = {
   details: (id) => api.get(`/orders/${id}`),
   chefOrders: (params) => api.get('/orders/chef', { params }),
   updateStatus: (id, payload) => api.put(`/orders/${id}/status`, payload),
+  cancel: (id, payload) => api.post(`/orders/${id}/cancel`, payload),
 };
 
 export const deliveryApi = {

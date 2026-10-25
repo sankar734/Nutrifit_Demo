@@ -294,8 +294,7 @@ const NutritionDashboard = () => {
   const [chatLog, setChatLog] = useState([
     {
       role: 'assistant',
-      text: `Hello! 👋 I am your NutriChef AI Nutritionist.\nBased on your physical measurements (${profile.weightKg}kg, ${profile.heightCm}cm, BMI ${computedMetrics.bmi}), your daily target is ${computedMetrics.targetCalories} kcal with ${computedMetrics.proteinGrams}g Protein.\n\nHere are handpicked chef-curated meals for your goals. What would you like to eat or plan today?`,
-      foods: defaultRecommendedFoods.slice(0, 2),
+      text: `Hello! 👋 I am your NutriChef AI Nutritionist.\nBased on your physical measurements (${profile.weightKg}kg, ${profile.heightCm}cm, BMI ${computedMetrics.bmi}), your daily target is ${computedMetrics.targetCalories} kcal with ${computedMetrics.proteinGrams}g Protein.\n\nAsk me anything! For example: "Suggest high protein dinners", "Low calorie bowls", or "Diabetic friendly breakfast".`,
     },
   ]);
   const [chatInput, setChatInput] = useState('');
@@ -774,19 +773,23 @@ const NutritionDashboard = () => {
                               </span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                            <div className="flex flex-col gap-2 pt-1">
                               {c.foods.map((food) => (
                                 <div
                                   key={food._id}
                                   onClick={() => navigate(`/food/${food._id}`)}
-                                  className="bg-purple-50/40 hover:bg-white rounded-xl p-2.5 border border-purple-100/90 hover:border-purple-300 shadow-2xs hover:shadow-md transition cursor-pointer flex items-center justify-between gap-2.5 group"
+                                  className="bg-purple-50/40 hover:bg-white rounded-2xl p-2.5 border border-purple-100/90 hover:border-purple-300 shadow-2xs hover:shadow-md transition cursor-pointer flex items-center justify-between gap-3 group"
                                 >
-                                  {/* Food thumbnail with veg badge */}
-                                  <div className="relative w-13 h-13 rounded-lg overflow-hidden shrink-0 bg-slate-100">
+                                  {/* Guaranteed Fixed-Size Thumbnail with Veg badge */}
+                                  <div 
+                                    className="relative rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-100"
+                                    style={{ width: '60px', height: '60px', minWidth: '60px', minHeight: '60px', maxWidth: '60px', maxHeight: '60px' }}
+                                  >
                                     <img
                                       src={food.images?.[0] || '/food-images/grilled-chicken-breast-1.jpg'}
                                       alt={food.name}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300 block"
                                     />
                                     <div className="absolute top-1 left-1 bg-white/95 backdrop-blur-xs p-0.5 rounded-xs shadow-2xs">
                                       <span
@@ -800,20 +803,27 @@ const NutritionDashboard = () => {
                                   </div>
 
                                   {/* Food info */}
-                                  <div className="flex-1 min-w-0">
-                                    <h5 className="text-[11px] font-black text-slate-900 truncate group-hover:text-purple-700 transition">
-                                      {food.name}
-                                    </h5>
-                                    <p className="text-[10px] text-slate-500 font-semibold truncate">
-                                      {food.nutrition?.calories || 320} kcal • {food.nutrition?.protein || 12}g Prot
+                                  <div className="flex-1 min-w-0 space-y-0.5">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <h5 className="text-xs font-black text-slate-900 truncate group-hover:text-purple-700 transition">
+                                        {food.name}
+                                      </h5>
+                                      {food.matchScore && (
+                                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-md shrink-0">
+                                          {food.matchScore}% Match
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 font-medium truncate">
+                                      {food.nutrition?.calories || 320} kcal • {food.nutrition?.protein || 12}g Protein
                                     </p>
-                                    <div className="flex items-center justify-between mt-1">
-                                      <span className="text-xs font-black text-purple-800">
+                                    <div className="flex items-center justify-between pt-0.5">
+                                      <span className="text-xs font-black text-purple-700">
                                         ₹{food.discountPrice || food.price}
                                       </span>
-                                      {food.matchScore && (
-                                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-md">
-                                          {food.matchScore}% Match
+                                      {food.recommendReason && (
+                                        <span className="text-[9px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded-md truncate max-w-[130px]" title={food.recommendReason}>
+                                          {food.recommendReason}
                                         </span>
                                       )}
                                     </div>
@@ -826,10 +836,10 @@ const NutritionDashboard = () => {
                                       e.stopPropagation();
                                       handleAdd(food);
                                     }}
-                                    className="w-7 h-7 rounded-lg bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-xs active:scale-90 transition"
+                                    className="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-xs active:scale-90 transition"
                                     title="Add to Cart"
                                   >
-                                    <Plus size={14} />
+                                    <Plus size={16} />
                                   </button>
                                 </div>
                               ))}
@@ -1207,21 +1217,38 @@ const NutritionDashboard = () => {
                             <div
                               key={food._id}
                               onClick={() => navigate(`/food/${food._id}`)}
-                              className="bg-purple-50/50 hover:bg-white rounded-xl p-2 border border-purple-100/90 flex items-center justify-between gap-2 cursor-pointer group"
+                              className="bg-purple-50/50 hover:bg-white rounded-xl p-2.5 border border-purple-100/90 flex items-center justify-between gap-2.5 cursor-pointer group"
                             >
-                              <img
-                                src={food.images?.[0] || '/food-images/grilled-chicken-breast-1.jpg'}
-                                alt={food.name}
-                                className="w-12 h-12 rounded-lg object-cover shrink-0"
-                              />
-                              <div className="flex-1 min-w-0">
+                              {/* Guaranteed Fixed-Size Thumbnail with Veg badge */}
+                              <div 
+                                className="relative rounded-lg overflow-hidden shrink-0 bg-slate-100 border border-slate-100"
+                                style={{ width: '52px', height: '52px', minWidth: '52px', minHeight: '52px', maxWidth: '52px', maxHeight: '52px' }}
+                              >
+                                <img
+                                  src={food.images?.[0] || '/food-images/grilled-chicken-breast-1.jpg'}
+                                  alt={food.name}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                  className="w-full h-full object-cover block"
+                                />
+                                <div className="absolute top-1 left-1 bg-white/95 backdrop-blur-xs p-0.5 rounded-xs shadow-2xs">
+                                  <span
+                                    className={`w-2 h-2 border rounded-xs flex items-center justify-center ${
+                                      food.isVeg ? 'border-emerald-600' : 'border-rose-600'
+                                    }`}
+                                  >
+                                    <span className={`w-1 h-1 rounded-full ${food.isVeg ? 'bg-emerald-600' : 'bg-rose-600'}`} />
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex-1 min-w-0 space-y-0.5">
                                 <h5 className="text-[11px] font-black text-slate-900 truncate">
                                   {food.name}
                                 </h5>
-                                <p className="text-[10px] text-slate-500 font-medium">
+                                <p className="text-[10px] text-slate-500 font-medium truncate">
                                   {food.nutrition?.calories} kcal • {food.nutrition?.protein}g Prot
                                 </p>
-                                <span className="text-xs font-black text-purple-800">
+                                <span className="text-xs font-black text-purple-700">
                                   ₹{food.discountPrice || food.price}
                                 </span>
                               </div>
@@ -1232,9 +1259,10 @@ const NutritionDashboard = () => {
                                   e.stopPropagation();
                                   handleAdd(food);
                                 }}
-                                className="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs active:scale-90"
+                                className="w-8 h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-xs active:scale-90 transition"
+                                title="Add to Cart"
                               >
-                                <Plus size={14} />
+                                <Plus size={16} />
                               </button>
                             </div>
                           ))}

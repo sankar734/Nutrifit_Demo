@@ -409,4 +409,163 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   return success(res, 'Order status updated', { order });
 });
 
-module.exports = { placeOrder, getMyOrders, getOrderById, getChefOrders, updateOrderStatus, sendOrderConfirmation };
+// @desc Customer / Admin: Cancel order with tiered refund policy
+const cancelOrder = asyncHandler(async (req, res) => {
+  const { reason = 'Cancelled by customer' } = req.body;
+  const order = await Order.findById(req.params.id)
+    .populate('chef')
+    .populate('customer');
+
+  if (!order) return error(res, 'Order not found', 404);
+
+  // Check authorization
+  const customerId = order.customer?._id ? order.customer._id.toString() : order.customer?.toString();
+  const userId = req.user._id.toString();
+  const isAdmin = ['admin', 'superadmin'].includes(req.user.role);
+
+  if (customerId !== userId && !isAdmin) {
+    return error(res, 'Not authorized to cancel this order', 403);
+  }
+
+  // Check terminal or delivery states
+  if (['cancelled', 'rejected'].includes(order.status)) {
+    return error(res, 'This order is already cancelled', 400);
+  }
+
+  if (['picked_up', 'on_the_way', 'delivered'].includes(order.status)) {
+    return error(res, 'Cannot cancel order once it is out for delivery or delivered', 400);
+  }
+
+  const previousStatus = order.status;
+  let refundPercentage = 100;
+  let refundAmount = order.totalAmount;
+  let cancellationFee = 0;
+  let policyMessage = '';
+
+  // Tier 1: Before cooking starts -> 100% refund
+  if (['placed', 'accepted'].includes(previousStatus)) {
+    refundPercentage = 100;
+    refundAmount = order.totalAmount;
+    cancellationFee = 0;
+    policyMessage = `Order was cancelled before kitchen preparation started. 100% full refund of ₹${refundAmount} has been credited to your wallet.`;
+  }
+  // Tier 2: During cooking / ready -> 50% refund (half amount returned)
+  else if (['preparing', 'ready'].includes(previousStatus)) {
+    refundPercentage = 50;
+    refundAmount = Math.round(order.totalAmount * 0.5);
+    cancellationFee = order.totalAmount - refundAmount;
+    policyMessage = `Order was cancelled while kitchen was preparing your meal. As per policy, 50% refund of ₹${refundAmount} has been credited to your wallet (₹${cancellationFee} deducted for ingredient costs).`;
+  }
+
+  order.status = 'cancelled';
+  order.cancellationReason = `${reason} (${refundPercentage}% refund)`;
+  order.refundAmount = refundAmount;
+  order.refundPercentage = refundPercentage;
+  order.cancellationFee = cancellationFee;
+  order.cancelledAt = new Date();
+  order.statusHistory.push({ status: 'cancelled', timestamp: new Date() });
+  if (refundAmount > 0) {
+    order.paymentStatus = 'refunded';
+  }
+
+  await order.save();
+
+  // Process refund to customer wallet
+  let updatedBalance = req.user.walletBalance || 0;
+  if (refundAmount > 0) {
+    const customerUser = await User.findById(customerId);
+    if (customerUser) {
+      customerUser.walletBalance = (customerUser.walletBalance || 0) + refundAmount;
+      await customerUser.save();
+      updatedBalance = customerUser.walletBalance;
+
+      const WalletTransaction = require('../models/Wallet');
+      await WalletTransaction.create({
+        user: customerUser._id,
+        type: 'credit',
+        amount: refundAmount,
+        reason: `${refundPercentage}% refund for cancelled order #${order.orderNumber}`,
+        order: order._id,
+        balanceAfter: customerUser.walletBalance,
+      }).catch(() => {});
+    }
+  }
+
+  const io = req.app.get('io');
+
+  // Customer notification
+  await createNotification(io, {
+    userId: customerId,
+    title: refundPercentage === 100
+      ? `Order #${order.orderNumber} Cancelled · Full Refund ₹${refundAmount}`
+      : `Order #${order.orderNumber} Cancelled · 50% Refund ₹${refundAmount}`,
+    body: policyMessage,
+    type: 'order',
+    data: { orderId: order._id, status: 'cancelled', refundAmount, refundPercentage },
+  });
+
+  // Chef notification
+  if (order.chef?.user) {
+    await createNotification(io, {
+      userId: order.chef.user,
+      title: `Order #${order.orderNumber} Cancelled ⚠️`,
+      body: `Customer cancelled order #${order.orderNumber}. Previous status was ${previousStatus}. Preparation compensation: ₹${cancellationFee}.`,
+      type: 'order',
+      data: { orderId: order._id, status: 'cancelled' },
+    });
+  }
+
+  // Realtime Socket updates
+  if (io) {
+    io.to(`order_${order._id}`).emit('order_status_update', {
+      orderId: order._id,
+      status: 'cancelled',
+      refundAmount,
+      refundPercentage,
+      cancellationFee,
+      policyMessage,
+    });
+
+    if (order.chef?._id) {
+      io.to(`chef_${order.chef._id}`).emit('order_cancelled', {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        refundAmount,
+        cancellationFee,
+        policyMessage,
+      });
+      io.to(`chef_${order.chef._id}`).emit('order_status_update', {
+        orderId: order._id,
+        status: 'cancelled',
+      });
+    }
+
+    io.to('admin_room').emit('order_status_update', {
+      orderId: order._id,
+      status: 'cancelled',
+      refundAmount,
+      refundPercentage,
+    });
+
+    io.emit('stats_update');
+  }
+
+  return success(res, policyMessage, {
+    order,
+    refundAmount,
+    refundPercentage,
+    cancellationFee,
+    walletBalance: updatedBalance,
+    policyMessage,
+  });
+});
+
+module.exports = { 
+  placeOrder, 
+  getMyOrders, 
+  getOrderById, 
+  getChefOrders, 
+  updateOrderStatus, 
+  sendOrderConfirmation,
+  cancelOrder 
+};
